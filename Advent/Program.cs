@@ -2,39 +2,86 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using System.Linq.Expressions;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
-int[] left= new int[lines.Length];
-int[] right = new int[lines.Length];
-long sim = 0;
+var l = lines.Length;
+int[][]data= new int[l][];
+
 for (int i = 0; i < lines.Length; i++)
 {
     var x = lines[i].Split(' ');
-    left[i] = int.Parse(x[0]);
-    right[i] = int.Parse(x[3]);
-}
-Array.Sort(left);
-Array.Sort(right);
-
-for (int i = 0; i < lines.Length; i++)
-{
-    var a = left[i];
-    var count = 0;
-    for (int j = 0; j < lines.Length; j++)
+    data[i]= new int[x.Length];
+    for (int j = 0; j < x.Length; j++)
     {
-        if (a == right[j])
-            count++;
+        data[i][j] = int.Parse(x[j]);
+    }
+}
+
+int count = 0;
+
+for (int i = 0; i < l; i++)
+
+{
+    bool safe = true;
+    safe = Safe(data[i]);
+
+    if (safe)
+    {
+        count++;
+        continue;
+    }
+    else
+    {
+        for (int j = 0; j < data[i].Length; j++)
+        {
+            //remove j element
+            var x = data[i].ToList();
+            x.RemoveAt(j);
+            var y = x.ToArray();
+            safe = Safe(y);
+            if (safe)
+            {
+                count++;
+                break;
+            }
+        }
+    }
+}
+
+Console.WriteLine(count);
+Console.WriteLine(l-count);
+
+bool Safe(int[] ints)
+{
+    if (ints[0] == ints[1])
+    {
+        return false;
     }
 
-    sim += a * count;
-}
-long s = 0;
-for (int i = 0; i < lines.Length; i++)
-{
-    s += Math.Abs(left[i] - right[i]);
-}
+    bool cresc = !(ints[0] > ints[1]);
+    if (cresc)
+    {
+        for (int j = 0; j < ints.Length-1; j++)
+        {
+            if (ints[j + 1] - ints[j] < 1 || ints[j + 1] - ints[j] > 3)
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        for (int j = 0; j < ints.Length - 1; j++)
+        {
+            if (ints[j + 1] - ints[j] < -3 || ints[j + 1] - ints[j] > -1)
+            {
+                return false;
+            }
+        }
+    }
 
-Console.WriteLine(s);
-Console.WriteLine(sim);
+    return true;
+}
