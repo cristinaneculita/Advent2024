@@ -3,85 +3,100 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
 using System.Linq.Expressions;
+using System.Numerics;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
-int[][]data= new int[l][];
+long sum = 0;
 
 for (int i = 0; i < lines.Length; i++)
 {
-    var x = lines[i].Split(' ');
-    data[i]= new int[x.Length];
-    for (int j = 0; j < x.Length; j++)
+    var index = 0;
+    while (index < lines[i].Length)
     {
-        data[i][j] = int.Parse(x[j]);
+        index = lines[i].IndexOf("mul", index);
+        if (index == -1)
+        {
+            break;
+        }
+
+        if (lines[i][index + 3] != '(')
+        {
+            index += 3;
+            continue;
+        }
+
+        if (!isNum(lines[i][index + 4]))
+        {
+            index += 3;
+            continue;
+        }
+
+        int c = 4;
+        var nr1 = "";
+        while (isNum(lines[i][index + c]))
+        {
+            nr1 += lines[i][index + c];
+            c++;
+
+        }
+
+
+        if (nr1.Length >3)
+        {
+            index += 6;
+            continue;
+        }
+
+        if (lines[i][index + c] != ',')
+        {
+            index += c;
+            continue;
+        }
+
+        c++;
+        if (!isNum(lines[i][index + c]))
+        {
+            index += c;
+            continue;
+        }
+
+        var nr2 = "";
+        while (isNum(lines[i][index + c]))
+        {
+            nr2 += lines[i][index + c];
+            c++;
+
+        }
+
+        if (nr2.Length>3)
+        {
+            index += c;
+            continue;
+        }
+
+        if (lines[i][index + c] != ')')
+        {
+            index+= c;
+            continue;
+        }
+
+        sum += int.Parse(nr1) * int.Parse(nr2);
+        index += c;
     }
+
+    
 }
-
-int count = 0;
-
-for (int i = 0; i < l; i++)
-
+Console.WriteLine(sum);
+bool isNum(char c)
 {
-    bool safe = true;
-    safe = Safe(data[i]);
-
-    if (safe)
-    {
-        count++;
-        continue;
-    }
-    else
-    {
-        for (int j = 0; j < data[i].Length; j++)
-        {
-            //remove j element
-            var x = data[i].ToList();
-            x.RemoveAt(j);
-            var y = x.ToArray();
-            safe = Safe(y);
-            if (safe)
-            {
-                count++;
-                break;
-            }
-        }
-    }
+    return (c >= '0' && c<='9');
 }
 
-Console.WriteLine(count);
-Console.WriteLine(l-count);
 
-bool Safe(int[] ints)
-{
-    if (ints[0] == ints[1])
-    {
-        return false;
-    }
 
-    bool cresc = !(ints[0] > ints[1]);
-    if (cresc)
-    {
-        for (int j = 0; j < ints.Length-1; j++)
-        {
-            if (ints[j + 1] - ints[j] < 1 || ints[j + 1] - ints[j] > 3)
-            {
-                return false;
-            }
-        }
-    }
-    else
-    {
-        for (int j = 0; j < ints.Length - 1; j++)
-        {
-            if (ints[j + 1] - ints[j] < -3 || ints[j + 1] - ints[j] > -1)
-            {
-                return false;
-            }
-        }
-    }
 
-    return true;
-}
+
+
