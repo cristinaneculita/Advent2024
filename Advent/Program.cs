@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Numerics;
 using System.Runtime.ExceptionServices;
@@ -9,94 +10,114 @@ using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
-long sum = 0;
-
-for (int i = 0; i < lines.Length; i++)
+char[][] m = new char[l][];
+var c = lines[0].Length;
+for (int i = 0; i < l; i++)
 {
-    var index = 0;
-    while (index < lines[i].Length)
+    m[i] = lines[i].ToCharArray();
+}
+
+int sum = 0;
+for (int i = 0; i < l; i++)
+{
+    for (int j = 0; j < c; j++)
     {
-        index = lines[i].IndexOf("mul", index);
-        if (index == -1)
+        if (m[i][j] == 'X')
         {
+            var d = LookAllDir(i, j, 'M');
+
+
+
+            foreach (var dir in d)
+            {
+
+                var w = LookWord(i, j, dir);
+
+
+
+                if (w)
+                    sum++;
+            }
+        }
+    }
+}
+
+Console.WriteLine(sum);
+
+List<int> LookAllDir(int i, int j, char car)
+{
+    var rez = new List<int>();
+    if (i > 0 && j > 0)
+        if (m[i - 1][j - 1] == car)
+            rez.Add(1);
+    if (i > 0)
+        if (m[i - 1][j] == car)
+            rez.Add(2);
+    if (i > 0 && j < c - 1)
+        if (m[i - 1][j + 1] == car)
+            rez.Add(3);
+    if (j < c - 1)
+        if (m[i][j + 1] == car)
+            rez.Add(4);
+    if (i < l - 1 && j < c - 1)
+        if (m[i + 1][j + 1] == car)
+            rez.Add(5);
+    if (i < l - 1)
+        if (m[i + 1][j] == car)
+            rez.Add(6);
+    if (i < l - 1 && j > 0)
+        if (m[i + 1][j - 1] == car)
+            rez.Add(7);
+    if (j > 0)
+        if (m[i][j - 1] == car)
+            rez.Add(8);
+    return rez;
+}
+
+bool LookWord(int i, int j, int dir)
+{
+    switch (dir)
+    {
+        case 1:
+            if (ms(i - 2, j - 2) == 'A' && ms(i - 3, j - 3) == 'S')
+                return true;
             break;
-        }
+        case 2:
+            if (ms(i - 2, j) == 'A' && ms(i - 3, j) == 'S')
+                return true;
+            break;
+        case 3:
+            if(ms(i-2, j+2)=='A' && ms(i-3, j+3)=='S')
+                return true;
+            break;
+        case 4: 
+            if(ms(i, j+2)=='A' && ms(i, j+3)=='S')
+                return true;
+            break;
+        case 5: if(ms(i+2, j+2)=='A' && ms(i+3, j+3)=='S')
+            return true;
+            break;
+        case 6:if(ms(i+2, j)=='A' && ms(i+3, j)=='S')
+            return true;
+            break;
+        case 7:if(ms(i+2, j-2)=='A' && ms(i+3, j-3)=='S')
+            return true;
+            break;
+        case 8:
+            if (ms(i, j - 2) == 'A' && ms(i, j - 3) == 'S')
+                return true;
+            break;
+        default:
+            return false;
 
-        if (lines[i][index + 3] != '(')
-        {
-            index += 3;
-            continue;
-        }
-
-        if (!isNum(lines[i][index + 4]))
-        {
-            index += 3;
-            continue;
-        }
-
-        int c = 4;
-        var nr1 = "";
-        while (isNum(lines[i][index + c]))
-        {
-            nr1 += lines[i][index + c];
-            c++;
-
-        }
-
-
-        if (nr1.Length >3)
-        {
-            index += 6;
-            continue;
-        }
-
-        if (lines[i][index + c] != ',')
-        {
-            index += c;
-            continue;
-        }
-
-        c++;
-        if (!isNum(lines[i][index + c]))
-        {
-            index += c;
-            continue;
-        }
-
-        var nr2 = "";
-        while (isNum(lines[i][index + c]))
-        {
-            nr2 += lines[i][index + c];
-            c++;
-
-        }
-
-        if (nr2.Length>3)
-        {
-            index += c;
-            continue;
-        }
-
-        if (lines[i][index + c] != ')')
-        {
-            index+= c;
-            continue;
-        }
-
-        sum += int.Parse(nr1) * int.Parse(nr2);
-        index += c;
     }
 
-    
+    return false;
 }
-Console.WriteLine(sum);
-bool isNum(char c)
+
+char ms(int i, int j)
 {
-    return (c >= '0' && c<='9');
+    if (i >= 0 && j >= 0 && i < l && j < c)
+        return m[i][j];
+    return 'Q';
 }
-
-
-
-
-
-
