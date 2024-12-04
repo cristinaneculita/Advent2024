@@ -22,27 +22,21 @@ for (int i = 0; i < l; i++)
 {
     for (int j = 0; j < c; j++)
     {
-        if (m[i][j] == 'X')
+        if (m[i][j]=='A')
         {
-            var d = LookAllDir(i, j, 'M');
+            if(FindPattern(i,j))
+            { sum++; }
 
-
-
-            foreach (var dir in d)
-            {
-
-                var w = LookWord(i, j, dir);
-
-
-
-                if (w)
-                    sum++;
-            }
+           
         }
     }
 }
 
+
 Console.WriteLine(sum);
+
+
+
 
 List<int> LookAllDir(int i, int j, char car)
 {
@@ -120,4 +114,16 @@ char ms(int i, int j)
     if (i >= 0 && j >= 0 && i < l && j < c)
         return m[i][j];
     return 'Q';
+}
+bool FindPattern(int i, int j)
+{
+    if (ms(i - 1, j - 1) == 'M' && ms(i - 1, j + 1) == 'M' && ms(i + 1, j + 1) == 'S' && ms(i + 1, j - 1) == 'S')
+        return true;
+    if (ms(i - 1, j - 1) == 'M' && ms(i - 1, j + 1) == 'S' && ms(i + 1, j + 1) == 'S' && ms(i + 1, j - 1) == 'M')
+        return true;
+    if (ms(i - 1, j - 1) == 'S' && ms(i - 1, j + 1) == 'S' && ms(i + 1, j + 1) == 'M' && ms(i + 1, j - 1) == 'M')
+        return true;
+    if (ms(i - 1, j - 1) == 'S' && ms(i - 1, j + 1) == 'M' && ms(i + 1, j + 1) == 'M' && ms(i + 1, j - 1) == 'S')
+        return true;
+    return false;
 }
