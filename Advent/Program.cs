@@ -10,120 +10,94 @@ using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
-char[][] m = new char[l][];
-var c = lines[0].Length;
+var sum = 0;
+var rules = new List<Rule>();
+var prints = new List<List<int>>();
+//citire date
 for (int i = 0; i < l; i++)
 {
-    m[i] = lines[i].ToCharArray();
+
+    if (lines[i].Contains('|'))
+    {
+        
+        var x = lines[i].Split('|');
+        Rule r = new Rule(int.Parse(x[0]), int.Parse(x[1]));
+        rules.Add(r);
+    }
+
+    if (lines[i].Contains(','))
+    {
+        var x = lines[i].Split(',');
+        var li = new List<int>();
+        foreach (var s in x)
+        {
+           li.Add(int.Parse(s));
+        }
+        prints.Add(li);
+    }
+
+
+
 }
 
-int sum = 0;
-for (int i = 0; i < l; i++)
-{
-    for (int j = 0; j < c; j++)
-    {
-        if (m[i][j]=='A')
-        {
-            if(FindPattern(i,j))
-            { sum++; }
 
-           
+//prelucrare date
+
+foreach (var print in prints)
+{
+    var corect = true;
+    foreach (var el in print)
+    {
+        var ruleForBefore = rules.Where(r => r.Before == el);
+        var indcurent = print.IndexOf(el);
+        foreach (var rule in ruleForBefore)
+        {
+            var afternum = rule.After;
+            var indr = print.IndexOf(afternum);
+            if (indr!=-1 && indr < indcurent)
+            {
+                corect = false;
+                break;
+            }
+        }
+        if (corect == false)
+            break;
+        var ruleForAfter = rules.Where(r => r.After == el);
+        foreach (var rule in ruleForAfter)
+        {
+            var beforeNr = rule.Before;
+            var indr = print.IndexOf(beforeNr);
+            if (indr!=-1 && indr > indcurent)
+            {
+                corect = false;
+                break;
+            }
         }
     }
+
+    if (corect)
+    {
+        var mid = print.Count / 2;
+        sum += print[mid];
+    }
+
+
 }
+
 
 
 Console.WriteLine(sum);
 
 
 
-
-List<int> LookAllDir(int i, int j, char car)
+class Rule
 {
-    var rez = new List<int>();
-    if (i > 0 && j > 0)
-        if (m[i - 1][j - 1] == car)
-            rez.Add(1);
-    if (i > 0)
-        if (m[i - 1][j] == car)
-            rez.Add(2);
-    if (i > 0 && j < c - 1)
-        if (m[i - 1][j + 1] == car)
-            rez.Add(3);
-    if (j < c - 1)
-        if (m[i][j + 1] == car)
-            rez.Add(4);
-    if (i < l - 1 && j < c - 1)
-        if (m[i + 1][j + 1] == car)
-            rez.Add(5);
-    if (i < l - 1)
-        if (m[i + 1][j] == car)
-            rez.Add(6);
-    if (i < l - 1 && j > 0)
-        if (m[i + 1][j - 1] == car)
-            rez.Add(7);
-    if (j > 0)
-        if (m[i][j - 1] == car)
-            rez.Add(8);
-    return rez;
-}
+    public int Before { get; set; }
+    public int After { get; set; }
 
-bool LookWord(int i, int j, int dir)
-{
-    switch (dir)
+    public Rule(int before, int after)
     {
-        case 1:
-            if (ms(i - 2, j - 2) == 'A' && ms(i - 3, j - 3) == 'S')
-                return true;
-            break;
-        case 2:
-            if (ms(i - 2, j) == 'A' && ms(i - 3, j) == 'S')
-                return true;
-            break;
-        case 3:
-            if(ms(i-2, j+2)=='A' && ms(i-3, j+3)=='S')
-                return true;
-            break;
-        case 4: 
-            if(ms(i, j+2)=='A' && ms(i, j+3)=='S')
-                return true;
-            break;
-        case 5: if(ms(i+2, j+2)=='A' && ms(i+3, j+3)=='S')
-            return true;
-            break;
-        case 6:if(ms(i+2, j)=='A' && ms(i+3, j)=='S')
-            return true;
-            break;
-        case 7:if(ms(i+2, j-2)=='A' && ms(i+3, j-3)=='S')
-            return true;
-            break;
-        case 8:
-            if (ms(i, j - 2) == 'A' && ms(i, j - 3) == 'S')
-                return true;
-            break;
-        default:
-            return false;
-
+        Before = before;
+        After = after;
     }
-
-    return false;
-}
-
-char ms(int i, int j)
-{
-    if (i >= 0 && j >= 0 && i < l && j < c)
-        return m[i][j];
-    return 'Q';
-}
-bool FindPattern(int i, int j)
-{
-    if (ms(i - 1, j - 1) == 'M' && ms(i - 1, j + 1) == 'M' && ms(i + 1, j + 1) == 'S' && ms(i + 1, j - 1) == 'S')
-        return true;
-    if (ms(i - 1, j - 1) == 'M' && ms(i - 1, j + 1) == 'S' && ms(i + 1, j + 1) == 'S' && ms(i + 1, j - 1) == 'M')
-        return true;
-    if (ms(i - 1, j - 1) == 'S' && ms(i - 1, j + 1) == 'S' && ms(i + 1, j + 1) == 'M' && ms(i + 1, j - 1) == 'M')
-        return true;
-    if (ms(i - 1, j - 1) == 'S' && ms(i - 1, j + 1) == 'M' && ms(i + 1, j + 1) == 'M' && ms(i + 1, j - 1) == 'S')
-        return true;
-    return false;
 }
