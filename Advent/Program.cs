@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using System.Drawing;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Numerics;
@@ -11,191 +12,164 @@ using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
-var sum = 0;
+var c = lines[0].Length;
+var sum = 1;
 var sum2 = 0;
-var rules = new List<Rule>();
-var prints = new List<List<int>>();
+Guard g = new Guard();
+int[][] m = new int[l][];
+int[][] v = new int[l][];
 //citire date
 for (int i = 0; i < l; i++)
 {
-
-    if (lines[i].Contains('|'))
+    m[i] = new int[c];
+    v[i] = new int[c];
+    var ca = lines[i].ToCharArray();
+    for (int j = 0; j < ca.Length; j++)
     {
-        
-        var x = lines[i].Split('|');
-        Rule r = new Rule(int.Parse(x[0]), int.Parse(x[1]));
-        rules.Add(r);
-    }
-
-    if (lines[i].Contains(','))
-    {
-        var x = lines[i].Split(',');
-        var li = new List<int>();
-        foreach (var s in x)
+        v[i][j] = 0;
+        if (ca[j] == '.')
+            m[i][j] = 0;
+        if (ca[j]=='#')
+            m[i][j]= 1;
+        if (ca[j] == '^')
         {
-           li.Add(int.Parse(s));
+            g.x = i;
+            g.y = j;
+            g.dir = 1;
+            v[i][j] = 1;
         }
-        prints.Add(li);
     }
-
-
-
 }
 
 
 //prelucrare date
-
-foreach (var print in prints)
+var possible = true;
+var exit = false;
+while (true)
 {
-
-    var corect = Corect(print, rules);
-
-    if (corect)
+    possible = true;
+    switch (g.dir)
     {
-        var mid = print.Count / 2;
-        sum += print[mid];
-    }
-    else
-    {
-        var resultList = new List<int>();
-        int first=0;
-        while (print.Any())
-        {
-            foreach (var p in print)
+        case 1:
+            while (possible)
             {
-                //let's put p first
-                var newList = new List<int>();
-                newList.Add(p);
-                foreach (var pp in print)
+                if (g.x == 0)
                 {
-                    if (pp != p)
-                    {
-                        newList.Add(pp);
-                    }
+                    possible = false;
+                    exit = true;
                 }
-
-                if (CorectOnlyMe(newList, rules, p))
+                else if (m[g.x - 1][g.y]==0)
                 {
-                    resultList.Add(p);
-                    first = p;
-                    break;
+                    g.x--;
+                    sum++;
+                    v[g.x][g.y] = 1;
+                }
+                else
+                {
+                    possible = false;
+                    g.dir = 2;
                 }
             }
-
-            print.Remove(first);
-        }
-        Console.WriteLine();
-
-        foreach (var i in resultList)
-        {
-            Console.Write($"{i} ");
-        }
-
-        var mid = resultList.Count / 2;
-        sum2 += resultList[mid];
-    }
-}
-
-
-int mostRulesBeforeLeastAfter(List<int> print, List<Rule> rules)
-{
-    var mostrules = int.MinValue;
-    int val=0;
-    foreach (var el in print)
-    {
-        var b = rules.Count(r => r.Before == el && print.Contains(r.After));
-        if (b > mostrules)
-        {
-            mostrules = b;
-            val = el;
-        }
-    }
-
-    return val;
-}
-
-Console.WriteLine(sum);
-Console.WriteLine(sum2);
-
-bool Corect(List<int> ints, List<Rule> list)
-{
-    var b = true;
-    foreach (var el in ints)
-    {
-        var ruleForBefore = list.Where(r => r.Before == el);
-        var indcurent = ints.IndexOf(el);
-        foreach (var rule in ruleForBefore)
-        {
-            var afternum = rule.After;
-            var indr = ints.IndexOf(afternum);
-            if (indr!=-1 && indr < indcurent)
-            {
-                b = false;
-                break;
-            }
-        }
-        if (b == false)
             break;
-        var ruleForAfter = list.Where(r => r.After == el);
-        foreach (var rule in ruleForAfter)
-        {
-            var beforeNr = rule.Before;
-            var indr = ints.IndexOf(beforeNr);
-            if (indr!=-1 && indr > indcurent)
+        case 2:
+            while (possible)
             {
-                b = false;
-                break;
+                if (g.y == c-1)
+                {
+                    possible = false;
+                    exit = true;
+                }
+                else if (m[g.x][g.y+1] == 0)
+                {
+                    g.y++;
+                    sum++;
+                    v[g.x][g.y] = 1;
+                }
+                else
+                {
+                    possible = false;
+                    g.dir = 3;
+                }
             }
-        }
+            break;
+        case 3:
+            while (possible)
+            {
+                if (g.x == l-1)
+                {
+                    possible = false;
+                    exit = true;
+                }
+                else if (m[g.x + 1][g.y] == 0)
+                {
+                    g.x++;
+                    sum++;
+                    v[g.x][g.y] = 1;
+                }
+                else
+                {
+                    possible = false;
+                    g.dir = 4;
+                }
+            }
+            break;
+        case 4:
+            while (possible)
+            {
+                if (g.y == 0)
+                {
+                    possible = false;
+                    exit = true;
+                }
+                else if (m[g.x][g.y-1] == 0)
+                {
+                    g.y--;
+                    sum++;
+                    v[g.x][g.y] = 1;
+                }
+                else
+                {
+                    possible = false;
+                    g.dir = 1;
+                }
+            }
+            break;
+
     }
 
-    return b;
+    if (exit)
+        break;
+
 }
 
-bool CorectOnlyMe(List<int> lis, List<Rule> rr, int r)
+var sum3 = 0;
+for (int i = 0; i < l; i++)
 {
-    var b = true;
-    var el = r;
-        var ruleForBefore = rr.Where(r => r.Before == el);
-        var indcurent = lis.IndexOf(el);
-        foreach (var rule in ruleForBefore)
-        {
-            var afternum = rule.After;
-            var indr = lis.IndexOf(afternum);
-            if (indr != -1 && indr < indcurent)
-            {
-                b = false;
-                break;
-            }
-        }
-
-        if (b == false)
-            return false;
-        var ruleForAfter = rr.Where(r => r.After == el);
-        foreach (var rule in ruleForAfter)
-        {
-            var beforeNr = rule.Before;
-            var indr = lis.IndexOf(beforeNr);
-            if (indr != -1 && indr > indcurent)
-            {
-                b = false;
-                break;
-            }
-        }
-    
-
-    return b;
-}
-
-
-class Rule
-{
-    public int Before { get; set; }
-    public int After { get; set; }
-
-    public Rule(int before, int after)
+    for (int j = 0; j < c; j++)
     {
-        Before = before;
-        After = after;
+        if (v[i][j] == 1)
+            sum3++;
+    }
+}
+
+
+
+Console.WriteLine(sum3);
+
+public class Guard
+{
+    public int x { get; set; }
+    public int y { get; set; }
+    public int dir { get; set; }
+
+    public Guard()
+    {
+        
+    }
+
+    public Guard(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
     }
 }
