@@ -33,7 +33,7 @@ for (int i = 0; i < l; i++)
 //prelucrare date
 for (int i = 0; i < l; i++)
 {
-    Console.WriteLine(i);
+  //  Console.WriteLine(i);
     var b = CanBeTrue(equations[i]);
 
 
@@ -56,16 +56,24 @@ bool CanBeTrue(Eq equation)
     else
     {
         //resultforplus 
+        Eq e;
         var listForPlus = equation.Nr.ToList();
         long val = listForPlus[0] + listForPlus[1];
-        //  if (val > equation.TestValue)
-        //     return false;
-        listForPlus.RemoveAt(0);
-        listForPlus.RemoveAt(0);
-        listForPlus.Insert(0, val);
+        bool resultForPlus;
+        if (val > equation.TestValue)
+        {
+            resultForPlus = false;
+        }
+        else
+        {
+            listForPlus.RemoveAt(0);
+            listForPlus.RemoveAt(0);
+            listForPlus.Insert(0, val);
 
-        Eq e = new Eq(equation.TestValue, listForPlus);
-        var resultForPlus = CanBeTrue(e);
+            e = new Eq(equation.TestValue, listForPlus);
+            resultForPlus = CanBeTrue(e);
+        }
+
         if (resultForPlus)
             return true;
 
@@ -73,14 +81,21 @@ bool CanBeTrue(Eq equation)
         //resultformul
         var listForMul = equation.Nr.ToList();
         val = listForMul[0] * listForMul[1];
-        // if (val > equation.TestValue)
-        //    return false;
-        listForMul.RemoveAt(0);
-        listForMul.RemoveAt(0);
-        listForMul.Insert(0, val);
+        bool resultForMul;
+        if (val > equation.TestValue)
+        {
+            resultForMul = false;
+        }
+        else
+        {
+            listForMul.RemoveAt(0);
+            listForMul.RemoveAt(0);
+            listForMul.Insert(0, val);
 
-        e = new Eq(equation.TestValue, listForMul);
-        var resultForMul = CanBeTrue(e);
+            e = new Eq(equation.TestValue, listForMul);
+            resultForMul = CanBeTrue(e);
+        }
+
         if (resultForMul == true)
             return true;
 
@@ -88,8 +103,8 @@ bool CanBeTrue(Eq equation)
         var listForCon = equation.Nr.ToList();
         val = long.Parse(listForCon[0].ToString() + listForCon[1].ToString());
 
-        // if (val > equation.TestValue)
-        //    return false;
+         if (val > equation.TestValue)
+            return false;
         listForCon.RemoveAt(0);
         listForCon.RemoveAt(0);
         listForCon.Insert(0, val);
@@ -98,6 +113,7 @@ bool CanBeTrue(Eq equation)
         var resultForCon = CanBeTrue(e);
 
         return resultForCon;
+      
 
     }
 
