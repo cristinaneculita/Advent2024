@@ -12,224 +12,110 @@ using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
-var c = lines[0].Length;
-var sum = 0;var sum2 = 0;
-Guard g = new Guard();
-int[][] m = new int[l][];
-Vispoint[][] v = new Vispoint[l][];
-int gi = 0, gj = 0;
+
+long sum = 0;
+var equations = new List<Eq>(l);
 //citire date
 for (int i = 0; i < l; i++)
 {
-    m[i] = new int[c];
-    v[i] = new Vispoint[c];
-    var ca = lines[i].ToCharArray();
-    for (int j = 0; j < ca.Length; j++)
+    var x = lines[i].Split(':');
+    var eq = new Eq();
+    eq.TestValue = long.Parse(x[0]);
+    var y = x[1].Trim().Split(' ');
+    foreach (var v in y)
     {
-        v[i][j] = new Vispoint();
-        v[i][j].Viz = false;
-        if (ca[j] == '.')
-            m[i][j] = 0;
-        if (ca[j]=='#')
-            m[i][j]= 1;
-        if (ca[j] == '^')
-        {
-            g.x = i;
-            g.y = j;
-            g.dir = 1;
-            v[i][j].Viz = true;
-            v[i][j].Dir = 1;
-            gi = i;
-            gj = j;
-        }
+        eq.Nr.Add(long.Parse(v));
     }
+    equations.Add(eq);
 }
 
 
 //prelucrare date
 for (int i = 0; i < l; i++)
 {
-    for (int j = 0; j < c; j++)
-    {
-        if (m[i][j] == 0 && !(i == gi && j == gj))
-        {
-            Console.WriteLine($" {i} {j}");
-            m[i][j] = 1;
-            v = new Vispoint[l][];
-            for (int k = 0; k < c; k++)
-            {
-                v[k] = new Vispoint[c];
-                for (int n = 0; n < c; n++)
-                {
-                    v[k][n] = new Vispoint();
-                }
-            }
+    Console.WriteLine(i);
+    var b = CanBeTrue(equations[i]);
 
-            v[gi][gj].Viz = true;
-            v[gi][gj].Dir = 1;
-            g.x = gi;
-            g.y = gj;
-            g.dir = 1;
-            var loop = Way(g, m, v, c, l);
-            if (loop)
-                sum++;
-            m[i][j] = 0;
-        }
-    }
+
+    if (b)
+        sum += equations[i].TestValue;
 }
-
-
 
 
 
 Console.WriteLine(sum);
 
-bool Way(Guard guard, int[][] ints, Vispoint[][] v, int c, int l)
+bool CanBeTrue(Eq equation)
 {
-    var possible = true;
-    var exit = false;
-    while (true)
+    if (equation.Nr.Count == 1)
     {
-        possible = true;
-        switch (guard.dir)
-        {
-            case 1:
-                while (possible)
-                {
-                    if (guard.x == 0)
-                    {
-                        possible = false;
-                        exit = true;
-                    }
-                    else if (ints[guard.x - 1][guard.y]==0)
-                    {
-                       
+        if (equation.Nr[0] == equation.TestValue)
+            return true;
+        else return false;
+    }
+    else
+    {
+        //resultforplus 
+        var listForPlus = equation.Nr.ToList();
+        long val = listForPlus[0] + listForPlus[1];
+        //  if (val > equation.TestValue)
+        //     return false;
+        listForPlus.RemoveAt(0);
+        listForPlus.RemoveAt(0);
+        listForPlus.Insert(0, val);
 
-                        guard.x--;
-                        if (v[guard.x][guard.y].Viz && v[guard.x][guard.y].Dir == 1)
-                        {
-                            return true;
-                        }
-                        v[guard.x][guard.y].Viz = true;
-                        v[guard.x][guard.y].Dir = 1;
+        Eq e = new Eq(equation.TestValue, listForPlus);
+        var resultForPlus = CanBeTrue(e);
+        if (resultForPlus)
+            return true;
 
-                    }
-                    else
-                    {
-                        possible = false;
-                        guard.dir = 2;
-                    }
-                }
-                break;
-            case 2:
-                while (possible)
-                {
-                    if (guard.y == c-1)
-                    {
-                        possible = false;
-                        exit = true;
-                    }
-                    else if (ints[guard.x][guard.y+1] == 0)
-                    {
-                        guard.y++;
-                        if (v[guard.x][guard.y].Viz == true && v[guard.x][guard.y].Dir == 2)
-                            return true;
-                        v[guard.x][guard.y].Viz = true;
-                        v[guard.x][guard.y].Dir = 2;
-                        
-                    }
-                    else
-                    {
-                        possible = false;
-                        guard.dir = 3;
-                    }
-                }
-                break;
-            case 3:
-                while (possible)
-                {
-                    if (guard.x == l-1)
-                    {
-                        possible = false;
-                        exit = true;
-                    }
-                    else if (ints[guard.x + 1][guard.y] == 0)
-                    {
-                        guard.x++;
-                        if (v[guard.x][guard.y].Viz && v[guard.x][guard.y].Dir == 3)
-                            return true;
-                        v[guard.x][guard.y].Viz = true;
-                        v[guard.x][guard.y].Dir = 3;
-                    }
-                    else
-                    {
-                        possible = false;
-                        guard.dir = 4;
-                    }
-                }
-                break;
-            case 4:
-                while (possible)
-                {
-                    if (guard.y == 0)
-                    {
-                        possible = false;
-                        exit = true;
-                    }
-                    else if (ints[guard.x][guard.y-1] == 0)
-                    {
-                        guard.y--;
-                        if (v[guard.x][guard.y].Viz && v[guard.x][guard.y].Dir == 4)
-                            return true;
-                        v[guard.x][guard.y].Viz = true;
-                        v[guard.x][guard.y].Dir = 4;
-                    }
-                    else
-                    {
-                        possible = false;
-                        guard.dir = 1;
-                    }
-                }
-                break;
 
-        }
+        //resultformul
+        var listForMul = equation.Nr.ToList();
+        val = listForMul[0] * listForMul[1];
+        // if (val > equation.TestValue)
+        //    return false;
+        listForMul.RemoveAt(0);
+        listForMul.RemoveAt(0);
+        listForMul.Insert(0, val);
 
-        if (exit)
-            break;
+        e = new Eq(equation.TestValue, listForMul);
+        var resultForMul = CanBeTrue(e);
+        if (resultForMul == true)
+            return true;
+
+        //result for concat
+        var listForCon = equation.Nr.ToList();
+        val = long.Parse(listForCon[0].ToString() + listForCon[1].ToString());
+
+        // if (val > equation.TestValue)
+        //    return false;
+        listForCon.RemoveAt(0);
+        listForCon.RemoveAt(0);
+        listForCon.Insert(0, val);
+
+        e = new Eq(equation.TestValue, listForCon);
+        var resultForCon = CanBeTrue(e);
+
+        return resultForCon;
 
     }
 
-    return false;
 }
 
-public class Guard
+public class Eq
 {
-    public int x { get; set; }
-    public int y { get; set; }
-    public int dir { get; set; }
+    public long TestValue { get; set; }
+    public List<long> Nr { get; set; }
 
-    public Guard()
+    public Eq()
     {
-        
+        Nr = new List<long>();
     }
 
-    public Guard(int x, int y)
+    public Eq(long testValue, List<long> nr)
     {
-        this.x = x;
-        this.y = y;
-    }
-}
-public class Vispoint{
-    public bool Viz { get; set; }
-    public int Dir { get; set; }
-
-    public Vispoint()
-    {
-        
-    }
-    public Vispoint(bool viz, int dir)
-    {
-        Viz = viz;
-        Dir = dir;
+        TestValue = testValue;
+        Nr = nr;
     }
 }
