@@ -12,126 +12,149 @@ using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
-
+char[][] m = new char[l][];
+bool[][] anti = new bool[l][];
+var antenas = new List<char>();
 long sum = 0;
-var equations = new List<Eq>(l);
 //citire date
 for (int i = 0; i < l; i++)
 {
-    var x = lines[i].Split(':');
-    var eq = new Eq();
-    eq.TestValue = long.Parse(x[0]);
-    var y = x[1].Trim().Split(' ');
-    foreach (var v in y)
-    {
-        eq.Nr.Add(long.Parse(v));
-    }
-    equations.Add(eq);
+    m[i] = lines[i].ToCharArray();
+    anti[i] = new bool[l];
 }
 
 
 //prelucrare date
 for (int i = 0; i < l; i++)
 {
-  //  Console.WriteLine(i);
-    var b = CanBeTrue(equations[i]);
+    for (int j = 0; j < l; j++)
+    {
+        if (m[i][j] != '.')
+        {
+            if (!antenas.Contains(m[i][j]))
+                antenas.Add(m[i][j]);
+        }
 
-
-    if (b)
-        sum += equations[i].TestValue;
+        anti[i][j] = false;
+    }
 }
 
+foreach (var antena in antenas)
+{
+    List<Point> allOcc = GetAllOcc(antena);
 
+
+
+    foreach (var occ1 in allOcc)
+    {
+        foreach (var occ2 in allOcc)
+        {
+            if (occ1 != occ2)
+            {
+                anti[occ1.X][occ1.Y] = true;
+                anti[occ2.X][occ2.Y] = true;
+                FindAllAntinodes(anti, occ1, occ2);
+
+
+            }
+        }
+    }
+
+}
+
+for (int i = 0; i < l; i++)
+{
+    for (int j = 0; j < l; j++)
+    {
+        if (anti[i][j])
+            sum++;
+    }
+}
 
 Console.WriteLine(sum);
 
-bool CanBeTrue(Eq equation)
+void FindAllAntinodes(bool[][] anti, Point occ1, Point occ2)
 {
-    if (equation.Nr.Count == 1)
+    var diffx = occ1.X - occ2.X;
+    var diffy = occ1.Y - occ2.Y;
+    var anti1x = occ1.X;
+    var anti1y = occ1.Y;
+    do
     {
-        if (equation.Nr[0] == equation.TestValue)
-            return true;
-        else return false;
-    }
-    else
-    {
-        //resultforplus 
-        Eq e;
-        var listForPlus = equation.Nr.ToList();
-        long val = listForPlus[0] + listForPlus[1];
-        bool resultForPlus;
-        if (val > equation.TestValue)
+        anti1x = anti1x + diffx;
+        anti1y = anti1y + diffy;
+        if (InLimits(anti1x) && InLimits(anti1y))
         {
-            resultForPlus = false;
+            anti[anti1x][anti1y] = true;
+
         }
         else
         {
-            listForPlus.RemoveAt(0);
-            listForPlus.RemoveAt(0);
-            listForPlus.Insert(0, val);
-
-            e = new Eq(equation.TestValue, listForPlus);
-            resultForPlus = CanBeTrue(e);
+            break;
         }
+    } while (true);
 
-        if (resultForPlus)
-            return true;
-
-
-        //resultformul
-        var listForMul = equation.Nr.ToList();
-        val = listForMul[0] * listForMul[1];
-        bool resultForMul;
-        if (val > equation.TestValue)
-        {
-            resultForMul = false;
-        }
+    var anti2x = occ2.X;
+    var anti2y = occ2.Y;
+    do
+    {
+        anti2x = anti2x - diffx;
+        anti2y = anti2y - diffy;
+        if (InLimits(anti2x) && InLimits(anti2y))
+            anti[anti2x][anti2y] = true;
         else
         {
-            listForMul.RemoveAt(0);
-            listForMul.RemoveAt(0);
-            listForMul.Insert(0, val);
-
-            e = new Eq(equation.TestValue, listForMul);
-            resultForMul = CanBeTrue(e);
+            break;
         }
-
-        if (resultForMul == true)
-            return true;
-
-        //result for concat
-        var listForCon = equation.Nr.ToList();
-        val = long.Parse(listForCon[0].ToString() + listForCon[1].ToString());
-
-         if (val > equation.TestValue)
-            return false;
-        listForCon.RemoveAt(0);
-        listForCon.RemoveAt(0);
-        listForCon.Insert(0, val);
-
-        e = new Eq(equation.TestValue, listForCon);
-        var resultForCon = CanBeTrue(e);
-
-        return resultForCon;
-      
-
-    }
-
+    } while (true);
 }
-
-public class Eq
+bool InLimits(int coord)
 {
-    public long TestValue { get; set; }
-    public List<long> Nr { get; set; }
+    if (coord >= 0 && coord < l)
+    { return true; }
 
-    public Eq()
+    return false;
+}
+List<Point> GetAllOcc(char c)
+{
+    var result = new List<Point>();
+    for (int i = 0; i < l; i++)
     {
-        Nr = new List<long>();
+        for (int j = 0; j < l; j++)
+        {
+            if (m[i][j] == c)
+                result.Add(new Point(i, j));
+        }
+    }
+    return result;
+}
+public class Point
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    public Point(int x, int y)
+    {
+        X = x;
+        Y = y;
     }
 
-    public Eq(long testValue, List<long> nr)
+    public override bool Equals(object obj)
     {
-        TestValue = testValue;
-        Nr = nr;
+        var item = obj as Point;
+
+        if (item == null)
+        {
+            return false;
+        }
+
+        if (item.X == this.X && item.Y == this.Y)
+            return true;
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return this.X.GetHashCode();
     }
 }
