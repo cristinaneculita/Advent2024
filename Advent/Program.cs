@@ -51,8 +51,7 @@ foreach (var antena in antenas)
         {
             if (occ1 != occ2)
             {
-                anti[occ1.X][occ1.Y] = true;
-                anti[occ2.X][occ2.Y] = true;
+                
                 FindAllAntinodes(anti, occ1, occ2);
 
 
@@ -77,36 +76,15 @@ void FindAllAntinodes(bool[][] anti, Point occ1, Point occ2)
 {
     var diffx = occ1.X - occ2.X;
     var diffy = occ1.Y - occ2.Y;
-    var anti1x = occ1.X;
-    var anti1y = occ1.Y;
-    do
-    {
-        anti1x = anti1x + diffx;
-        anti1y = anti1y + diffy;
-        if (InLimits(anti1x) && InLimits(anti1y))
-        {
-            anti[anti1x][anti1y] = true;
+    var anti1x = occ1.X + diffx;
+    var anti1y = occ1.Y + diffy;
+    if (InLimits(anti1x) && InLimits(anti1y))
+        anti[anti1x][anti1y] = true;
+    var anti2x = occ2.X - diffx;
+    var anti2y = occ2.Y - diffy;
+    if (InLimits(anti1x) && InLimits(anti1y))
+        anti[anti1x][anti1y] = true;
 
-        }
-        else
-        {
-            break;
-        }
-    } while (true);
-
-    var anti2x = occ2.X;
-    var anti2y = occ2.Y;
-    do
-    {
-        anti2x = anti2x - diffx;
-        anti2y = anti2y - diffy;
-        if (InLimits(anti2x) && InLimits(anti2y))
-            anti[anti2x][anti2y] = true;
-        else
-        {
-            break;
-        }
-    } while (true);
 }
 bool InLimits(int coord)
 {
