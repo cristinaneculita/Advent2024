@@ -14,19 +14,22 @@ using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
-Hashtable memo= new Hashtable();
+Hashtable memo = new Hashtable();
 
 long sum = 0;
 char[][] m = new char[l][];
 bool[][] luat = new bool[l][];
+List<int>[][] vm = new List<int>[l][];
 //citire date
 for (int i = 0; i < l; i++)
 {
     m[i] = lines[i].ToCharArray();
     luat[i] = new bool[l];
+    vm[i] = new List<int>[l];
     for (int j = 0; j < l; j++)
     {
         luat[i][j] = false;
+        vm[i][j] = new List<int>();
     }
 }
 
@@ -42,8 +45,10 @@ for (char t = 'A'; t <= 'Z'; t++)
             if (m[i][j] == t && luat[i][j] == false)
             {
                 Pret pret = new Pret();
-                CalculatePret(i, j, t,pret);
-                sum += pret.Perimeter * pret.Area;
+                var v = new List<int>();
+                CalculatePret(i, j, t, pret, v);
+                var si = pret.Perimeter * pret.Area;
+                sum += si;
 
             }
         }
@@ -51,33 +56,59 @@ for (char t = 'A'; t <= 'Z'; t++)
 }
 
 Console.WriteLine(sum);
-void CalculatePret(int i, int j, char t,Pret pret)
+void CalculatePret(int i, int j, char t, Pret pret, List<int> v)
 {
     //pun area
     pret.Area++;
-    var x = CountVeciniExt(i, j, t);
-    pret.Perimeter += x;
-    luat[i][j] = true;
+    List<int> vc = CountVeciniExt(i, j, t);
 
+
+    luat[i][j] = true;
+    vm[i][j] = vc;
+
+    pret.Perimeter += DifVec(vc, i, j, t);
+
+    int DifVec(List<int> vecc, int i, int j, char t)
+    {
+        int d = vecc.Count;
+        foreach (var v in vecc)
+        {
+            //sus
+            if (i > 0 && m[i - 1][j] == t && vm[i - 1][j].Contains(v) && luat[i - 1][j])
+                d--;
+            //dr
+            if (j < l - 1 && m[i][j + 1] == t && vm[i][j + 1].Contains(v) && luat[i][j+1])
+            { d--; }
+            //jos
+            if (i < l - 1 && m[i + 1][j] == t && vm[i + 1][j].Contains(v) && luat[i + 1][j])
+            { d--; }
+            //stg
+            if (j > 0 && m[i][j - 1] == t && vm[i][j - 1].Contains(v) && luat[i][j - 1])
+            { d--; }
+
+        }
+
+        return d;
+    }
     //dr
     if (mat(i, j + 1) == t)
     {
-        CalculatePret(i, j + 1, t, pret);
+        CalculatePret(i, j + 1, t, pret, vc);
     }
     //jos
     if (mat(i + 1, j) == t)
     {
-        CalculatePret(i + 1, j, t, pret);
+        CalculatePret(i + 1, j, t, pret, vc);
     }
     //stg
     if (mat(i, j - 1) == t)
     {
-        CalculatePret(i, j - 1, t, pret);
+        CalculatePret(i, j - 1, t, pret, vc);
     }
     //sus
     if (mat(i - 1, j) == t)
     {
-        CalculatePret(i - 1, j, t, pret);
+        CalculatePret(i - 1, j, t, pret, vc);
     }
 }
 char mat(int i, int j)
@@ -86,26 +117,62 @@ char mat(int i, int j)
         return m[i][j];
     return '-';
 }
-int CountVeciniExt(int i, int j, char t)
+List<int> CountVeciniExt(int i, int j, char t)
 {
+    var vc = new List<int>();
     var vecini = 0;
+    //sus
     if (i == 0)
+    {
         vecini++;
+        vc.Add(4);
+    }
+    //stg
     if (j == 0)
+    {
         vecini++;
-    if(i==l-1)
+        vc.Add(3);
+    }
+    //jos
+    if (i == l - 1)
+    {
         vecini++;
-    if(j==l-1)
+        vc.Add(2);
+    }
+    //dr
+    if (j == l - 1)
+    {
         vecini++;
-    if (j<l-1 && m[i][j + 1] != t)
+        vc.Add(1);
+    }
+    //dr
+    if (j < l - 1 && m[i][j + 1] != t)
+    {
         vecini++;
-    if (i<l-1&& m[i + 1][j]!=t)
+        vc.Add(1);
+    }
+    //jos
+    if (i < l - 1 && m[i + 1][j] != t)
+    {
         vecini++;
-    if(j>0 && m[i][j-1]!=t)
+        vc.Add(2);
+    }
+    //stg
+    if (j > 0 && m[i][j - 1] != t)
+    {
         vecini++;
-    if(i>0 && m[i - 1][j]!=t)
+        vc.Add(3);
+    }
+    //sus
+    if (i > 0 && m[i - 1][j] != t)
+    {
         vecini++;
-    return vecini;
+        vc.Add(4);
+    }
+
+
+
+    return vc;
 }
 public class Pret
 {
@@ -119,8 +186,8 @@ public class Pret
 
     public Pret(int area, int perimeter)
     {
-            Area = area;
-            Perimeter = perimeter;
+        Area = area;
+        Perimeter = perimeter;
     }
 }
 
