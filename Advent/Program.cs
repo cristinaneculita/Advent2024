@@ -13,153 +13,114 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
-
+var l = lines.Length;
 Hashtable memo= new Hashtable();
 
-int sum = 0;
-List<long> lst = new List<long>();
+long sum = 0;
+char[][] m = new char[l][];
+bool[][] luat = new bool[l][];
 //citire date
-var x = lines[0].Split(' ');
-foreach (var s in x)
+for (int i = 0; i < l; i++)
 {
-    lst.Add(long.Parse(s));
+    m[i] = lines[i].ToCharArray();
+    luat[i] = new bool[l];
+    for (int j = 0; j < l; j++)
+    {
+        luat[i][j] = false;
+    }
 }
 
 //procesare date
 
 Console.WriteLine();
-for (int i = 1; i < 77; i++)
+for (char t = 'A'; t <= 'Z'; t++)
 {
-    var count = LungimeLista(lst, i);
-    Console.WriteLine(i + "--->"+count);
-}
-
-
-
-
-
-
-
-long LungimeLista(List<long> list, int blinks)
-{
-
-    var caz = new Case(list, blinks);
-    if (memo.ContainsKey(caz))
-        return (long)memo[caz];
-    if (blinks == 0)
+    for (int i = 0; i < l; i++)
     {
-        memo[caz] = (long)list.Count;
-        return list.Count;
-    }
-
-    if (list.Count == 1 && list[0] == 0)
-    {
-        var x = LungimeLista(new List<long>() { 1 }, blinks - 1);
-        memo[caz] = (long)x;
-        return x;
-    }
-
-    if (list.Count == 1 && list[0] == 1)
-    {
-        var x= LungimeLista(new List<long>() { 2024 }, blinks - 1);
-        memo[caz] = (long)x;
-        return x;
-    }
-    if (list.Count == 1 && (list[0].ToString().Length % 2 == 0))
-    {
-        var strl = list[0].ToString();
-        var firsthalf = strl.Substring(0, strl.Length / 2);
-        var secondhalf = strl.Substring(strl.Length / 2);
-
-        var x= LungimeLista(new List<long> { long.Parse(firsthalf) }, blinks - 1) +
-               LungimeLista(new List<long>() { long.Parse(secondhalf) }, blinks - 1);
-        memo[caz] = (long)x;
-        return x;
-    }
-
-    if (list.Count == 1)
-    {
-        var x= LungimeLista(new List<long>() { list[0] * 2024 }, blinks - 1);
-        memo[caz] = (long)x;
-        return x;
-    }
-    long sum = 0;
-    foreach (var l in list)
-    {
-        sum += LungimeLista(new List<long>() { l }, blinks - 1);
-    }
-    memo[caz] = (long)sum;
-    return sum;
-}
-
-
-List<long> ProcesareLista()
-{
-    var newlist = new List<long>();
-    foreach (var l in lst)
-    {
-        if (l == 0)
-            newlist.Add(1);
-        else if (l.ToString().Length % 2 == 0)
+        for (int j = 0; j < l; j++)
         {
-            var strl = l.ToString();
-            var firsthalf = strl.Substring(0, strl.Length / 2);
-            var secondhalf = strl.Substring(strl.Length / 2);
-            newlist.Add(long.Parse(firsthalf));
-            newlist.Add(long.Parse(secondhalf));
-        }
-        else
-        {
-            newlist.Add(l * 2024);
-        }
-    }
-    return newlist;
-}
-
-public class Case
-{
-    public List<long> Nr { get; set; }
-    public int Blinks { get; set; }
-
-    public Case(List<long> nr, int blinks)
-    {
-        Nr = nr;
-        Blinks = blinks;
-    }
-
-    public override int GetHashCode()
-    {
-        return Blinks.GetHashCode();
-    }
-
-    public override bool Equals(object obj)
-    {
-   
-        if (obj is Case other)
-        {
-            if (other.Blinks != Blinks)
-                return false;
-            if(other.Nr.Count != Nr.Count) return false;
-
-            for (int i = 0; i < Nr.Count; i++)
+            if (m[i][j] == t && luat[i][j] == false)
             {
-                if (Nr[i] != other.Nr[i])
-                    return false;
+                Pret pret = new Pret();
+                CalculatePret(i, j, t,pret);
+                sum += pret.Perimeter * pret.Area;
+
             }
         }
-
-        return true;
     }
 }
 
-public class Val
+Console.WriteLine(sum);
+void CalculatePret(int i, int j, char t,Pret pret)
 {
-    public long Value { get; set; }
+    //pun area
+    pret.Area++;
+    var x = CountVeciniExt(i, j, t);
+    pret.Perimeter += x;
+    luat[i][j] = true;
 
-    public Val(long value)
+    //dr
+    if (mat(i, j + 1) == t)
     {
-        Value = value;
+        CalculatePret(i, j + 1, t, pret);
+    }
+    //jos
+    if (mat(i + 1, j) == t)
+    {
+        CalculatePret(i + 1, j, t, pret);
+    }
+    //stg
+    if (mat(i, j - 1) == t)
+    {
+        CalculatePret(i, j - 1, t, pret);
+    }
+    //sus
+    if (mat(i - 1, j) == t)
+    {
+        CalculatePret(i - 1, j, t, pret);
+    }
+}
+char mat(int i, int j)
+{
+    if (i >= 0 && j >= 0 && i <= l - 1 && j <= l - 1 && luat[i][j] == false)
+        return m[i][j];
+    return '-';
+}
+int CountVeciniExt(int i, int j, char t)
+{
+    var vecini = 0;
+    if (i == 0)
+        vecini++;
+    if (j == 0)
+        vecini++;
+    if(i==l-1)
+        vecini++;
+    if(j==l-1)
+        vecini++;
+    if (j<l-1 && m[i][j + 1] != t)
+        vecini++;
+    if (i<l-1&& m[i + 1][j]!=t)
+        vecini++;
+    if(j>0 && m[i][j-1]!=t)
+        vecini++;
+    if(i>0 && m[i - 1][j]!=t)
+        vecini++;
+    return vecini;
+}
+public class Pret
+{
+    public int Area { get; set; }
+    public int Perimeter { get; set; }
+    public Pret()
+    {
 
+    }
+
+
+    public Pret(int area, int perimeter)
+    {
+            Area = area;
+            Perimeter = perimeter;
     }
 }
 
