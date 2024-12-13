@@ -14,180 +14,130 @@ using System.Runtime.Serialization;
 
 string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
-Hashtable memo = new Hashtable();
+//Hashtable memo = new Hashtable();
 
 long sum = 0;
-char[][] m = new char[l][];
-bool[][] luat = new bool[l][];
-List<int>[][] vm = new List<int>[l][];
+var ec = new List<Caz>();
 //citire date
-for (int i = 0; i < l; i++)
+for (int i = 0; i < l; i+=4)
 {
-    m[i] = lines[i].ToCharArray();
-    luat[i] = new bool[l];
-    vm[i] = new List<int>[l];
-    for (int j = 0; j < l; j++)
-    {
-        luat[i][j] = false;
-        vm[i][j] = new List<int>();
-    }
+    var ln = lines[i];
+    var x = new Caz();
+    //A
+    var rem= ln.Remove(0,12);
+    var sx = rem.Split(',');
+    x.AX = long.Parse(sx[0]);
+    rem =sx[1].Remove(0, 3);
+    x.AY=long.Parse(rem);
+    
+    //B
+    ln = lines[i + 1];
+    rem = ln.Remove(0, 12);
+    sx = rem.Split(',');
+    x.BX = int.Parse(sx[0]);
+    rem =sx[1].Remove(0, 3);
+    x.BY=int.Parse(rem);
+
+    //Prize
+    ln=lines[i + 2];
+    rem = ln.Remove(0, 9);
+    sx = rem.Split(',');
+    x.PX = int.Parse(sx[0])+ 10000000000000;
+    rem = sx[1].Remove(0, 3);
+    x.PY=int.Parse(rem) + 10000000000000;
+    
+    ec.Add(x);
 }
 
 //procesare date
-
-Console.WriteLine();
-for (char t = 'A'; t <= 'Z'; t++)
+foreach (var e in ec)
 {
-    for (int i = 0; i < l; i++)
+    long t1 = e.PX * e.AY - e.PY * e.AX;
+    long t2 = e.BX * e.AY - e.BY * e.AX;
+    var rest = t1 % t2;
+    if (rest == 0)
     {
-        for (int j = 0; j < l; j++)
+        long m = t1 / t2;
+        if (m >= 0)
         {
-            if (m[i][j] == t && luat[i][j] == false)
+            e.rezB = m;
+            t1 = e.PX - m * e.BX;
+            t2 = e.AX;
+            rest = t1 % t2;
+            if (rest == 0)
             {
-                Pret pret = new Pret();
-                var v = new List<int>();
-                CalculatePret(i, j, t, pret, v);
-                var si = pret.Perimeter * pret.Area;
-                sum += si;
-
+                long n = t1 / t2;
+                if (n >= 0)
+                {
+                    e.rezA = n;
+                }
+                else
+                {
+                    e.rezA = -1;
+                    e.rezB = -1;
+                }
+            }
+            else
+            {
+                e.rezA = -1;
+                e.rezB = -1;
             }
         }
+        else
+        {
+            e.rezA = -1;
+            e.rezB = -1;
+        }
+    }
+    else
+    {
+        e.rezA = -1;
+        e.rezB = -1;
     }
 }
+
+sum = 0;
+foreach (var e in ec)
+{
+    //if (e.rezA <= 100 && e.rezB <= 100)
+    //{
+    if (e.rezA != -1 && e.rezB != -1)
+    {
+        long ad = e.rezA * 3 + e.rezB;
+        sum += ad;
+
+
+    }
+}
+
 
 Console.WriteLine(sum);
-void CalculatePret(int i, int j, char t, Pret pret, List<int> v)
+
+public class Caz
 {
-    //pun area
-    pret.Area++;
-    List<int> vc = CountVeciniExt(i, j, t);
+    public long AX { get; set; }
+    public long AY { get; set; }
+    public long BX { get; set; }
+    public long BY { get; set; }
+    public long PX { get; set; }
+    public long PY { get; set; }
 
+    public long rezA { get; set; }
+    public long rezB { get; set; }
 
-    luat[i][j] = true;
-    vm[i][j] = vc;
-
-    pret.Perimeter += DifVec(vc, i, j, t);
-
-    int DifVec(List<int> vecc, int i, int j, char t)
+    public Caz(int ax, int ay, int bx, int by, int px, int py)
     {
-        int d = vecc.Count;
-        foreach (var v in vecc)
-        {
-            //sus
-            if (i > 0 && m[i - 1][j] == t && vm[i - 1][j].Contains(v) && luat[i - 1][j])
-                d--;
-            //dr
-            if (j < l - 1 && m[i][j + 1] == t && vm[i][j + 1].Contains(v) && luat[i][j+1])
-            { d--; }
-            //jos
-            if (i < l - 1 && m[i + 1][j] == t && vm[i + 1][j].Contains(v) && luat[i + 1][j])
-            { d--; }
-            //stg
-            if (j > 0 && m[i][j - 1] == t && vm[i][j - 1].Contains(v) && luat[i][j - 1])
-            { d--; }
-
-        }
-
-        return d;
-    }
-    //dr
-    if (mat(i, j + 1) == t)
-    {
-        CalculatePret(i, j + 1, t, pret, vc);
-    }
-    //jos
-    if (mat(i + 1, j) == t)
-    {
-        CalculatePret(i + 1, j, t, pret, vc);
-    }
-    //stg
-    if (mat(i, j - 1) == t)
-    {
-        CalculatePret(i, j - 1, t, pret, vc);
-    }
-    //sus
-    if (mat(i - 1, j) == t)
-    {
-        CalculatePret(i - 1, j, t, pret, vc);
-    }
-}
-char mat(int i, int j)
-{
-    if (i >= 0 && j >= 0 && i <= l - 1 && j <= l - 1 && luat[i][j] == false)
-        return m[i][j];
-    return '-';
-}
-List<int> CountVeciniExt(int i, int j, char t)
-{
-    var vc = new List<int>();
-    var vecini = 0;
-    //sus
-    if (i == 0)
-    {
-        vecini++;
-        vc.Add(4);
-    }
-    //stg
-    if (j == 0)
-    {
-        vecini++;
-        vc.Add(3);
-    }
-    //jos
-    if (i == l - 1)
-    {
-        vecini++;
-        vc.Add(2);
-    }
-    //dr
-    if (j == l - 1)
-    {
-        vecini++;
-        vc.Add(1);
-    }
-    //dr
-    if (j < l - 1 && m[i][j + 1] != t)
-    {
-        vecini++;
-        vc.Add(1);
-    }
-    //jos
-    if (i < l - 1 && m[i + 1][j] != t)
-    {
-        vecini++;
-        vc.Add(2);
-    }
-    //stg
-    if (j > 0 && m[i][j - 1] != t)
-    {
-        vecini++;
-        vc.Add(3);
-    }
-    //sus
-    if (i > 0 && m[i - 1][j] != t)
-    {
-        vecini++;
-        vc.Add(4);
+        AX = ax;
+        AY = ay;
+        BX = bx;
+        BY = by;
+        PX = px;
+        PY = py;
     }
 
-
-
-    return vc;
-}
-public class Pret
-{
-    public int Area { get; set; }
-    public int Perimeter { get; set; }
-    public Pret()
+    public Caz()
     {
-
-    }
-
-
-    public Pret(int area, int perimeter)
-    {
-        Area = area;
-        Perimeter = perimeter;
+        
     }
 }
 
