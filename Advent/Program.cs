@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
 using System.Drawing;
@@ -11,133 +12,133 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Xml.Schema;
 
-string[] lines = File.ReadAllLines("input.txt");
+    string[] lines = File.ReadAllLines("input.txt");
 var l = lines.Length;
 //Hashtable memo = new Hashtable();
-
+var xmax = 101;
+var ymax = 103;
+//var xmax = 11;
+//var ymax = 7;
 long sum = 0;
-var ec = new List<Caz>();
+var robots = new List<Robot>();
+bool[][] imagine = new bool[xmax][];
+for (int i = 0; i < xmax; i++)
+{
+    imagine[i] = new bool[ymax];
+    for (int j = 0; j < ymax; j++)
+    {
+        imagine[i][j] = false;
+    }
+
+}
 //citire date
-for (int i = 0; i < l; i+=4)
+for (int i = 0; i < l; i++)
 {
-    var ln = lines[i];
-    var x = new Caz();
-    //A
-    var rem= ln.Remove(0,12);
-    var sx = rem.Split(',');
-    x.AX = long.Parse(sx[0]);
-    rem =sx[1].Remove(0, 3);
-    x.AY=long.Parse(rem);
-    
-    //B
-    ln = lines[i + 1];
-    rem = ln.Remove(0, 12);
-    sx = rem.Split(',');
-    x.BX = int.Parse(sx[0]);
-    rem =sx[1].Remove(0, 3);
-    x.BY=int.Parse(rem);
-
-    //Prize
-    ln=lines[i + 2];
-    rem = ln.Remove(0, 9);
-    sx = rem.Split(',');
-    x.PX = int.Parse(sx[0])+ 10000000000000;
-    rem = sx[1].Remove(0, 3);
-    x.PY=int.Parse(rem) + 10000000000000;
-    
-    ec.Add(x);
+    var x = lines[i].Split(',');
+    var t1 = int.Parse(x[0].Substring(2));
+    var y = x[1].Split(" ");
+    var t2 = int.Parse(y[0]);
+    var t3 = int.Parse(y[1].Substring(2));
+    var t4 = int.Parse(x[2]);
+    Robot r = new Robot(t1, t2, t3, t4);
+    robots.Add(r);
 }
-
 //procesare date
-foreach (var e in ec)
+
+for (int i = 0; i < 10000; i++)
 {
-    long t1 = e.PX * e.AY - e.PY * e.AX;
-    long t2 = e.BX * e.AY - e.BY * e.AX;
-    var rest = t1 % t2;
-    if (rest == 0)
+    Console.WriteLine(i);
+    foreach (var robot in robots)
     {
-        long m = t1 / t2;
-        if (m >= 0)
+        Step(robot);
+    }
+
+    if (((i - 62) % 103 == 0) || ((i - 81) % 101 == 0))
+    {
+        Write(robots);
+        Console.ReadKey();
+    }
+}
+   
+
+
+var sfert1 = 0;
+var sfert2 = 0;
+var sfert3 = 0;
+var sfert4 = 0;
+var medx = xmax / 2;
+var medy = ymax / 2;
+
+foreach (var robot in robots)
+{
+    if (robot.Posx < medx && robot.Posy < medy)
+        sfert1++;
+    if (robot.Posx > medx && robot.Posy < medy)
+        sfert2++;
+    if (robot.Posx < medx && robot.Posy > medy)
+        sfert3++;
+    if (robot.Posx > medx && robot.Posy > medy)
+        sfert4++;
+}
+
+Console.WriteLine(sfert1 * sfert2 * sfert3 * sfert4);
+void Step(Robot robot)
+{
+    robot.Posx = (robot.Posx + robot.Velx) % xmax;
+    if (robot.Posx < 0)
+        robot.Posx = xmax + robot.Posx;
+    robot.Posy = (robot.Posy + robot.Vely) % ymax;
+    if (robot.Posy < 0)
+        robot.Posy = ymax + robot.Posy;
+}
+void Write(List<Robot> list)
+{
+    for (int i = 0; i < ymax; i++)
+    {
+        for (int j = 0; j < xmax; j++)
         {
-            e.rezB = m;
-            t1 = e.PX - m * e.BX;
-            t2 = e.AX;
-            rest = t1 % t2;
-            if (rest == 0)
-            {
-                long n = t1 / t2;
-                if (n >= 0)
-                {
-                    e.rezA = n;
-                }
-                else
-                {
-                    e.rezA = -1;
-                    e.rezB = -1;
-                }
-            }
+            imagine[j][i] = false;
+        }
+    }
+
+    foreach (var robot in list)
+    {
+        imagine[robot.Posx][robot.Posy] = true;
+    }
+
+    for (int i = 0; i < ymax; i++)
+    {
+       // Console.Write(i);
+        for (int j = 0; j < xmax; j++)
+        {
+            if (imagine[j][i])
+                Console.Write('#');
             else
-            {
-                e.rezA = -1;
-                e.rezB = -1;
-            }
+                Console.Write('.');
         }
-        else
-        {
-            e.rezA = -1;
-            e.rezB = -1;
-        }
-    }
-    else
-    {
-        e.rezA = -1;
-        e.rezB = -1;
+
+        Console.WriteLine();
     }
 }
-
-sum = 0;
-foreach (var e in ec)
+public class Robot
 {
-    //if (e.rezA <= 100 && e.rezB <= 100)
-    //{
-    if (e.rezA != -1 && e.rezB != -1)
+    public int Posx { get; set; }
+    public int Posy { get; set; }
+    public int Velx { get; set; }
+    public int Vely { get; set; }
+
+    public Robot()
     {
-        long ad = e.rezA * 3 + e.rezB;
-        sum += ad;
 
+    }
 
+    public Robot(int posx, int posy, int velx, int vely)
+    {
+        Posx = posx;
+        Posy = posy;
+        Velx = velx;
+        Vely = vely;
     }
 }
-
-
-Console.WriteLine(sum);
-
-public class Caz
-{
-    public long AX { get; set; }
-    public long AY { get; set; }
-    public long BX { get; set; }
-    public long BY { get; set; }
-    public long PX { get; set; }
-    public long PY { get; set; }
-
-    public long rezA { get; set; }
-    public long rezB { get; set; }
-
-    public Caz(int ax, int ay, int bx, int by, int px, int py)
-    {
-        AX = ax;
-        AY = ay;
-        BX = bx;
-        BY = by;
-        PX = px;
-        PY = py;
-    }
-
-    public Caz()
-    {
-        
-    }
-}
-
