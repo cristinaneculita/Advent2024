@@ -14,521 +14,193 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Schema;
+using System.Xml.XPath;
 
 string[] lines = File.ReadAllLines("input.txt");
-var l = lines.Length;
 //Hashtable memo = new Hashtable();
 char[] instr = new char[1];
 long sum = 0;
-char[][] map = new char[lines[0].Length][];
+var l = lines.Length;
+char[][] map = new char[l][];
+int[][][] cost = new int[l][][];
+bool[][][] luat = new bool[l][][];
+int orientare = 1;
 //citire date
 for (int i = 0; i < l; i++)
 {
-    if (lines[i].Length > 0 && lines[i][0] == '#')
+    map[i] = lines[i].ToCharArray();
+    cost[i] = new int[lines[i].Length][];
+    luat[i] = new bool[lines[i].Length][];
+    for (int j = 0; j < lines[i].Length; j++)
     {
-        map[i] = new char[2 * lines[i].Length];
-        for (int j = 0; j < lines[i].Length; j++)
+        cost[i][j] = new int[4];
+        luat[i][j] = new bool[4];
+        if (map[i][j] == 'S')
         {
-            switch (lines[i][j])
+            cost[i][j][1] = 0;
+            luat[i][j][1] = false;
+            cost[i][j][0] = int.MaxValue;
+            cost[i][j][2] = int.MaxValue;
+            cost[i][j][3] = int.MaxValue;
+            luat[i][j][0] = false;
+            luat[i][j][2] = false;
+            luat[i][j][3] = false;
+        }
+        else
+        {
+            for (int k = 0; k < 4; k++)
             {
-                case '#':
-                    map[i][2 * j] = '#';
-                    map[i][2 * j + 1] = '#';
-                    break;
-                case 'O':
-                    map[i][2 * j] = '[';
-                    map[i][2 * j + 1] = ']';
-                    break;
-                case '.':
-                    map[i][2 * j] = '.';
-                    map[i][2 * j + 1] = '.';
-                    break;
-                case '@':
-                    map[i][2 * j] = '@';
-                    map[i][2 * j + 1] = '.';
-                    break;
+                cost[i][j][k] = int.MaxValue;
+                luat[i][j][k] = false;
+            }
+        }
+
+    }
+
+}
+
+//prelucrare date
+Dijkstra();
+
+
+
+//Console.WriteLine(sum);
+
+void Dijkstra()
+{
+    int ii = 0, jj = 0, oo = 0;
+    while (NotLuatEnd()==int.MaxValue)
+    {
+        Point u = minDist();
+
+        luat[u.I][u.J][u.O] = true;
+        //calculez noile distante
+        //dr 
+        ii = u.I;
+        jj = u.J + 1;
+        oo = u.O;
+        if (!luat[ii][jj][oo]
+            && map[ii][jj] != '#'
+            && cost[u.I][u.J][u.O] != int.MaxValue
+            && oo == 1
+            && cost[u.I][u.J][u.O] + 1 < cost[ii][jj][oo])
+        {
+            cost[ii][jj][oo] = cost[u.I][u.J][u.O] + 1;
+        }
+        // jos
+        ii = u.I + 1;
+        jj = u.J;
+        oo = u.O;
+        if (!luat[ii][jj][oo]
+            && map[ii][jj] != '#'
+            && cost[u.I][u.J][u.O] != int.MaxValue
+            && oo == 2
+            && cost[u.I][u.J][u.O] + 1 < cost[ii][jj][oo])
+        {
+            cost[ii][jj][oo] = cost[u.I][u.J][u.O] + 1;
+        }
+        // stg
+        ii = u.I;
+        jj = u.J - 1;
+        oo = u.O;
+        if (!luat[ii][jj][oo]
+            && map[ii][jj] != '#'
+            && cost[u.I][u.J][u.O] != int.MaxValue
+            && oo == 3
+            && cost[u.I][u.J][u.O] + 1 < cost[ii][jj][oo])
+        {
+            cost[ii][jj][oo] = cost[u.I][u.J][u.O] + 1;
+        }
+        // sus
+        ii = u.I - 1;
+        jj = u.J;
+        oo = u.O;
+        if (!luat[ii][jj][oo]
+            && map[ii][jj] != '#'
+            && cost[u.I][u.J][u.O] != int.MaxValue
+            && oo == 0
+            && cost[u.I][u.J][u.O] + 1 < cost[ii][jj][oo])
+        {
+            cost[ii][jj][oo] = cost[u.I][u.J][u.O] + 1;
+        }
+        //90gr c
+        ii = u.I;
+        jj = u.J;
+        oo = (u.O+1)%4;
+        if (!luat[ii][jj][oo]
+            && map[ii][jj] != '#'
+            && cost[u.I][u.J][u.O] != int.MaxValue
+            && cost[u.I][u.J][u.O] + 1000 < cost[ii][jj][oo])
+        {
+            cost[ii][jj][oo] = cost[u.I][u.J][u.O] + 1000;
+        }
+        //90gr antic
+        ii = u.I;
+        jj = u.J;
+        oo = (u.O - 1);
+        if (oo == -1)
+            oo = 3;
+        if (!luat[ii][jj][oo]
+            && map[ii][jj] != '#'
+            && cost[u.I][u.J][u.O] != int.MaxValue
+            && cost[u.I][u.J][u.O] + 1000 < cost[ii][jj][oo])
+        {
+            cost[ii][jj][oo] = cost[u.I][u.J][u.O] + 1000;
+        }
+    }
+
+    Console.WriteLine(NotLuatEnd());
+}
+
+int NotLuatEnd()
+{
+    if (cost[1][l - 2][0] != int.MaxValue)
+        return cost[1][l - 2][0];
+    if (cost[1][l - 2][1] != int.MaxValue)
+        return cost[1][l - 2][1];
+    if (cost[1][l - 2][2] != int.MaxValue)
+        return cost[1][l - 2][2];
+    return cost[1][l - 2][3];
+}
+Point minDist()
+{
+    int min = Int32.MaxValue;
+    Point p = new Point(-1, -1, -1);
+    for (int i = 0; i < l; i++)
+    {
+        for (int j = 0; j < l; j++)
+        {
+            for (int k = 0; k < 4; k++)
+            {
+                if (luat[i][j][k] == false && cost[i][j][k] < min)
+                {
+                    min= cost[i][j][k];
+                    p.I = i;
+                    p.J = j;
+                    p.O = k;
+                }
             }
         }
     }
-    else if (!string.IsNullOrEmpty(lines[i]))
-    {
-        instr = lines[i].ToCharArray();
-    }
+
+    return p;
 }
-int iurm = 0;
-int jurmfrom = 0;
-int jurmto = 0;
-var ll = lines[0].Length;
-var cc = 2 * ll;
-int ri = 0, rj = 0;
-var agatate = new List<Box>();
-//procesare date
-for (int i = 0; i < ll; i++)
+public class Point
 {
-    for (int j = 0; j < cc; j++)
-    {
-        if (map[i][j] == '@')
-        {
-            ri = i;
-            rj = j;
-        }
-    }
-}
+    public int I { get; set; }
+    public int J { get; set; }
+    public int O { get; set; }
 
-for (int i = 0; i < ll; i++)
-{
-    for (int j = 0; j < cc; j++)
+    public Point(int i, int j)
     {
-        Console.Write(map[i][j]);
+        I = i;
+        J = j;
     }
 
-    Console.WriteLine();
-}
-
-Console.WriteLine(cutii());
-
-int cutii()
-{
-    var cut = 0;
-    for (int i = 0; i < ll; i++)
+    public Point(int i, int j, int o)
     {
-        for (int j = 0; j < cc; j++)
-        {
-            if (map[i][j] == '[')
-                cut++;
-        }
-    }
-    return cut;
-}
-
-for (int i = 0; i < instr.Length; i++)
-{
-    switch (instr[i])
-    {
-        case '^':
-            MoveUp();
-            break;
-        case '>':
-            MoveRight();
-            break;
-        case '<':
-            MoveLeft();
-            break;
-        case 'v':
-            MoveDown();
-            break;
-    }
-    
-    if(i<instr.Length-1)
-        Console.WriteLine(instr[i + 1]);
-}
-Print();
-int cate = 0;
-for (int i = 0; i < ll; i++)
-{
-    for (int j = 0; j < cc; j++)
-    {
-        if (map[i][j] == '[')
-        {
-            cate++;
-            sum += 100 * i + j;
-        }
-    }
-}
-Print();
-Console.WriteLine(ri + " " + rj);
-Console.WriteLine(sum);
-Console.WriteLine(cate);
-void Print()
-{
-    for (int ii = 0; ii < ll; ii++)
-    {
-        for (int jj = 0; jj < cc; jj++)
-        {
-            Console.Write(map[ii][jj]);
-        }
-        Console.WriteLine();
-    }
-}
-
-
-
-//for (int i = 0; i < ll; i++)
-//{
-//    for (int j = 0; j < ll; j++)
-//    {
-//        if (map[i][j] == 'O')
-//            sum += 100 * i + j;
-//    }
-//}
-
-
-//Console.WriteLine(sum);
-void MoveDown()
-{
-    switch (map[ri + 1][rj])
-    {
-        case '.':
-            map[ri][rj] = '.';
-            ri = ri + 1;
-            map[ri][rj] = '@';
-            break;
-        case '#':
-            break;
-        case ']':
-            agatate = new List<Box>();
-            MoveColumnDown(']');
-            break;
-        case '[':
-            agatate = new List<Box>();
-            MoveColumnDown('[');
-            break;
-    }
-}
-void MoveLeft()
-{
-    switch (map[ri][rj - 1])
-    {
-        case '.':
-            map[ri][rj] = '.';
-            rj = rj - 1;
-            map[ri][rj] = '@';
-            break;
-        case '#':
-            break;
-        case ']':
-            MoveColumnLeft();
-            break;
-    }
-}
-void MoveRight()
-{
-    switch (map[ri][rj + 1])
-    {
-        case '.':
-            map[ri][rj] = '.';
-            rj = rj + 1;
-            map[ri][rj] = '@';
-            break;
-        case '#':
-            break;
-        case '[':
-            MoveColumnRight();
-            break;
-    }
-}
-void MoveUp()
-{
-    switch (map[ri - 1][rj])
-    {
-        case '.':
-            map[ri][rj] = '.';
-            ri = ri - 1;
-            map[ri][rj] = '@';
-            break;
-        case '#':
-            break;
-        case ']':
-            agatate = new List<Box>();
-            MoveColumnUp(']');
-            break;
-        case '[':
-            agatate = new List<Box>();
-            MoveColumnUp('[');
-            break;
-    }
-}
-
-void MoveColumnUp(char car)
-{
-    int c = 1;
-    if (car == ']')
-    {
-        agatate.Add(new Box(ri - 1, rj - 1));
-    }
-
-    if (car == '[')
-    {
-        agatate.Add(new Box(ri - 1, rj));
-    }
-
-    char f = '-';
-    while (true)
-    {
-        f = BoxInWayUp(ri - c);
-        if (f == '#')
-            break;
-        if (f == '.')
-            break;
-        c++;
-    }
-
-    if (f == '.')
-    {
-        ShiftAllUp();
-        ri = ri - 1;
-        map[ri][rj] = '@';
-        map[ri + 1][rj] = '.';
-    }
-}
-
-void ShiftAllUp()
-{
-    agatate.Reverse();
-    foreach (var box in agatate)
-    {
-        map[box.i - 1][box.jfrom] = map[box.i][box.jfrom];
-        map[box.i - 1][box.jfrom + 1] = map[box.i][box.jfrom + 1];
-        map[box.i][box.jfrom] = '.';
-        map[box.i][box.jfrom + 1] = '.';
-        //Console.WriteLine("am mutat " + agatate.IndexOf(box));
-        //Print();
-    }
-}
-char BoxInWayUp(int i)
-{
-    var agatateLinie = agatate.Where(b => b.i == i).ToList();
-    var found = false;
-    foreach (var box in agatateLinie)
-    {
-        if (map[box.i - 1][box.jfrom] == ']')
-        {
-            if (!agatate.Any(b => b.i == box.i - 1 && b.jfrom == box.jfrom - 1))
-                agatate.Add(new Box(box.i - 1, box.jfrom - 1));
-            found = true;
-        }
-        if (map[box.i - 1][box.jfrom] == '[')
-        {
-            if (!agatate.Any(a => a.i == box.i - 1 && a.jfrom == box.jfrom))
-                agatate.Add(new Box(box.i - 1, box.jfrom));
-            found = true;
-        }
-        if (map[box.i - 1][box.jfrom] == '#')
-        {
-            return '#';
-        }
-
-        if (map[box.i - 1][box.jfrom + 1] == ']')
-        {
-            if (!agatate.Any(a => a.i == box.i - 1 && a.jfrom == box.jfrom))
-                agatate.Add(new Box(box.i - 1, box.jfrom));
-            found = true;
-        }
-        if (map[box.i - 1][box.jfrom + 1] == '[')
-        {
-            if (!agatate.Any(a => a.i == box.i - 1 && a.jfrom == box.jfrom + 1))
-                agatate.Add(new Box(box.i - 1, box.jfrom + 1));
-            found = true;
-        }
-        if (map[box.i - 1][box.jfrom + 1] == '#')
-        {
-            return '#';
-        }
-    }
-    //for (int j = jurmfromc; j <= jurmtoc; j++)
-    //{
-    //    if (map[i][j] == ']')
-    //    {
-    //        if (map[i - 1][j] == '[')
-    //        {
-    //            jurmto++;
-    //            found = true;
-    //        }
-    //        else if (map[i - 1][j] == '#')
-    //            return '#';
-    //        else if (map[i - 1][j] == ']')
-    //            found = true;
-    //    }
-    //    if (map[i][j] == '[')
-    //    {
-    //        if (map[i - 1][j] == ']')
-    //        {
-    //            jurmfrom--;
-    //            found = true;
-    //        }
-    //        else if (map[i - 1][j] == '#')
-    //            return '#';
-    //        else if (map[i - 1][j] == '[')
-    //            found = true;
-    //    }
-
-    //}
-
-    if (found)
-        return 'O';
-    else return '.';
-}
-void MoveColumnDown(char car)
-{
-    int c = 1;
-    if (car == ']')
-    {
-        agatate.Add(new Box(ri + 1, rj - 1));
-    }
-
-    if (car == '[')
-    {
-        agatate.Add(new Box(ri + 1, rj));
-    }
-
-    char f = '-';
-    while (true)
-    {
-        f = BoxInWayDown(ri + c);
-
-        if (f == '#')
-            break;
-        if (f == '.')
-            break;
-        c++;
-    }
-
-    if (f == '.')
-    {
-        ShiftAllDown();
-        ri = ri + 1;
-        map[ri][rj] = '@';
-        map[ri - 1][rj] = '.';
-    }
-}
-void ShiftAllDown()
-{
-    agatate.Reverse();
-    foreach (var box in agatate)
-    {
-        map[box.i + 1][box.jfrom] = map[box.i][box.jfrom];
-        map[box.i + 1][box.jfrom + 1] = map[box.i][box.jfrom + 1];
-        map[box.i][box.jfrom] = '.';
-        map[box.i][box.jfrom + 1] = '.';
-        //Console.WriteLine("am mutat " + agatate.IndexOf(box));
-        // Print();
-    }
-}
-char BoxInWayDown(int i)
-{
-    var agatateLinie = agatate.Where(b => b.i == i).ToList();
-    var found = false;
-    foreach (var box in agatateLinie)
-    {
-        if (map[box.i + 1][box.jfrom] == ']')
-        {
-            if (!agatate.Any(a => a.i == box.i + 1 && a.jfrom == box.jfrom - 1))
-                agatate.Add(new Box(box.i + 1, box.jfrom - 1));
-            found = true;
-        }
-        if (map[box.i + 1][box.jfrom] == '[')
-        {
-            if (!agatate.Any(a => a.i == box.i + 1 && a.jfrom == box.jfrom))
-                agatate.Add(new Box(box.i + 1, box.jfrom));
-            found = true;
-        }
-        if (map[box.i + 1][box.jfrom] == '#')
-        {
-            return '#';
-        }
-
-        if (map[box.i + 1][box.jfrom + 1] == ']')
-        {
-            if (!agatate.Any(a => a.i == box.i + 1 && a.jfrom == box.jfrom))
-                agatate.Add(new Box(box.i + 1, box.jfrom));
-            found = true;
-        }
-        if (map[box.i + 1][box.jfrom + 1] == '[')
-        {
-            if (!agatate.Any(a => a.i == box.i + 1 && a.jfrom == box.jfrom+1))
-                agatate.Add(new Box(box.i + 1, box.jfrom + 1));
-            found = true;
-        }
-        if (map[box.i + 1][box.jfrom + 1] == '#')
-        {
-            return '#';
-        }
-    }
-    //for (int j = jurmfromc; j <= jurmtoc; j++)
-    //{
-    //    if (map[i][j] == ']')
-    //    {
-    //        if (map[i - 1][j] == '[')
-    //        {
-    //            jurmto++;
-    //            found = true;
-    //        }
-    //        else if (map[i - 1][j] == '#')
-    //            return '#';
-    //        else if (map[i - 1][j] == ']')
-    //            found = true;
-    //    }
-    //    if (map[i][j] == '[')
-    //    {
-    //        if (map[i - 1][j] == ']')
-    //        {
-    //            jurmfrom--;
-    //            found = true;
-    //        }
-    //        else if (map[i - 1][j] == '#')
-    //            return '#';
-    //        else if (map[i - 1][j] == '[')
-    //            found = true;
-    //    }
-
-    //}
-
-    if (found)
-        return 'O';
-    else return '.';
-}
-void MoveColumnLeft()
-{
-    int c = 1;
-    while (map[ri][rj - c] == ']' || map[ri][rj - c] == '[')
-        c++;
-    if (map[ri][rj - c] == '.')
-    {
-        do
-        {
-            map[ri][rj - c] = '[';
-            map[ri][rj - c + 1] = ']';
-            c -= 2;
-        } while (map[ri][rj - c + 1] != '@');
-
-        map[ri][rj] = '.';
-        rj = rj - 1;
-        map[ri][rj] = '@';
-    }
-}
-
-void MoveColumnRight()
-{
-    int c = 1;
-    while (map[ri][rj + c] == ']' || map[ri][rj + c] == '[')
-        c++;
-    if (map[ri][rj + c] == '.')
-    {
-        do
-        {
-            map[ri][rj + c] = ']';
-            map[ri][rj + c - 1] = '[';
-            c -= 2;
-        } while (map[ri][rj + c - 1] != '@');
-
-        map[ri][rj] = '.';
-        rj = rj + 1;
-        map[ri][rj] = '@';
-    }
-}
-
-//Console.WriteLine(sum);
-
-
-
-class Box
-{
-    public int jfrom { get; set; }
-    public int i { get; set; }
-
-    public Box(int i, int jfrom)
-    {
-        this.jfrom = jfrom;
-        this.i = i;
+        I = i;
+        J = j;
+        O = o;
     }
 }
