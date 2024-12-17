@@ -7,6 +7,7 @@ using System.Diagnostics.Tracing;
 using System.Drawing;
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -20,7 +21,7 @@ string[] lines = File.ReadAllLines("input.txt");
 //Hashtable memo = new Hashtable();
 var l = lines.Length;
 long A = 0;
-long B = 0; long C=0;
+long B = 0; long C = 0;
 List<int> instr = new List<int>();
 //citire date
 for (int i = 0; i < l; i++)
@@ -42,7 +43,7 @@ for (int i = 0; i < l; i++)
     }
     if (lines[i].Contains("Program"))
     {
-        var x = lines[i].Remove(0,9 );
+        var x = lines[i].Remove(0, 9);
         var y = x.Split(',').ToList();
         foreach (var yy in y)
         {
@@ -54,21 +55,60 @@ for (int i = 0; i < l; i++)
 long initialA = A;
 var output = new List<int>();
 long count = 0;
+long dif = 0;
+long antbun = 0;
 while (true)
 {
     output = new List<int>();
     A = initialA + count;
     B = 0;
     C = 0;
-    Console.WriteLine(A);
-
-    Output();
+    //  if(A%101 == 0)
+    //    Console.ReadKey();
     
-    count+=1;
+    Output();
+    if (output.Count >= 16)
+    {
+        string binary = Convert.ToString((initialA + count), 8);
+        Console.WriteLine(output.Count + " " + (initialA + count)+ " "+(initialA+count-antbun) +" -->"+Ss(output)+ "B: "+ binary);
+
+        string Ss(List<int> ints)
+        {
+            var s = "";
+            foreach (var i in ints)
+            {
+                s= s+ (i + ",");
+            }
+
+            return s;
+        }
+
+        antbun = initialA + count;
+    }
+
+    if (EqualOI())
+    {
+        Console.WriteLine(initialA + count);
+        break;
+    }
+
+
+
+    count += 2;
 }
 
 Console.WriteLine(A);
- 
+bool EqualOI()
+{
+    if (output.Count != instr.Count)
+        return false;
+    for (int i = 0; i < instr.Count; i++)
+    {
+        if (instr[i] != output[i])
+            return false;
+    }
+    return true;
+}
 
 
 void Output()
@@ -83,6 +123,10 @@ void Output()
 
         if (jumps == -1)
             ind += 2;
+        else if (jumps == long.MaxValue)
+        {
+            break;
+        }
         else
         {
             ind = jumps;
@@ -92,9 +136,9 @@ void Output()
     }
 }
 
-long Solve(int instr, long op)
+long Solve(int inst, long op)
 {
-    switch (instr)
+    switch (inst)
     {
         case 0:
             A = A / (int)Math.Pow(2, Combo(op));
@@ -113,7 +157,17 @@ long Solve(int instr, long op)
             B = B ^ C;
             break;
         case 5:
-            output.Add((int)(Combo(op)%8));
+            var o = (int)(Combo(op) % 8);
+            output.Add(o);
+            if (instr[output.Count-1] != o)
+            {
+                return long.MaxValue;
+            }
+            else
+            {
+                
+            }
+
             break;
         case 6:
             B = A / (int)Math.Pow(2, Combo(op));
@@ -121,7 +175,7 @@ long Solve(int instr, long op)
         case 7:
             C = A / (int)Math.Pow(2, Combo(op));
 
-           
+
 
             break;
     }
@@ -131,7 +185,7 @@ long Solve(int instr, long op)
 
 foreach (var o in output)
 {
-   Console.Write(o+",");
+    Console.Write(o + ",");
 }
 Console.ReadKey();
 
@@ -141,7 +195,7 @@ long Combo(long op)
         return op;
     if (op == 4)
         return A;
-    if(op==5)
+    if (op == 5)
         return B;
     if (op == 6)
         return C;
