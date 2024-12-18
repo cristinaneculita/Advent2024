@@ -20,185 +20,134 @@ using System.Xml.XPath;
 string[] lines = File.ReadAllLines("input.txt");
 //Hashtable memo = new Hashtable();
 var l = lines.Length;
-long A = 0;
-long B = 0; long C = 0;
-List<int> instr = new List<int>();
+//for first star
+
+var lat = 71;
+char[][] map = new char[lat][];
+int[][] cost = new int[lat][];
+bool[][] luat = new bool[lat][];
+for (int i = 0; i < lat; i++)
+{
+    map[i] = new char[lat];
+    cost[i] = new int[lat];
+    luat[i] = new bool[lat];
+    for (int j = 0; j < lat; j++)
+    {
+        map[i][j] = '.';
+        cost[i][j] = int.MaxValue;
+        luat[i][j] = false;
+    }
+}
+
 //citire date
-for (int i = 0; i < l; i++)
+var lim = 3000;
+for (int i = 0; i < lim; i++)
 {
-    if (lines[i].Contains("Register A"))
-    {
-        var x = lines[i].Remove(0, 12);
-        A = long.Parse(x);
-    }
-    if (lines[i].Contains("Register B"))
-    {
-        var x = lines[i].Remove(0, 12);
-        B = long.Parse(x);
-    }
-    if (lines[i].Contains("Register C"))
-    {
-        var x = lines[i].Remove(0, 12);
-        C = long.Parse(x);
-    }
-    if (lines[i].Contains("Program"))
-    {
-        var x = lines[i].Remove(0, 9);
-        var y = x.Split(',').ToList();
-        foreach (var yy in y)
-        {
-            instr.Add(int.Parse(yy));
-        }
-    }
+    var xcit = lines[i].Split(',');
+    var x = int.Parse(xcit[0]);
+    var y = int.Parse(xcit[1]);
+    map[y][x] = '#';
 }
-
-long initialA = A;
-var output = new List<int>();
-long count = 0;
-long dif = 0;
-long antbun = 0;
-while (true)
+//prelucrare
+var ic = 0;
+var jc = 0;
+cost[ic][jc] = 0;
+Dijskstra();
+Console.WriteLine(cost[lat - 1][lat-1]);
+void Dijskstra()
 {
-    output = new List<int>();
-    A = initialA + count;
-    B = 0;
-    C = 0;
-    //  if(A%101 == 0)
-    //    Console.ReadKey();
-    
-    Output();
-    if (output.Count >= 16)
+    int ii = 0, jj = 0;
+    while (cost[lat-1][lat-1] == int.MaxValue)
     {
-        string binary = Convert.ToString((initialA + count), 8);
-        Console.WriteLine(output.Count + " " + (initialA + count)+ " "+(initialA+count-antbun) +" -->"+Ss(output)+ "B: "+ binary);
+        Point u = minDist();
+        
+        luat[u.I][u.J] = true;
 
-        string Ss(List<int> ints)
+        //calculez noile distante
+        //dr
+        if (u.J < lat - 1)
         {
-            var s = "";
-            foreach (var i in ints)
+            ii = u.I;
+            jj = u.J + 1;
+            if (!luat[ii][jj]
+                && map[ii][jj] != '#'
+                && cost[u.I][u.J] != int.MaxValue
+                && cost[u.I][u.J] + 1 < cost[ii][jj])
             {
-                s= s+ (i + ",");
+                cost[ii][jj] = cost[u.I][u.J] + 1;
             }
-
-            return s;
         }
-
-        antbun = initialA + count;
-    }
-
-    if (EqualOI())
-    {
-        Console.WriteLine(initialA + count);
-        break;
-    }
-
-
-
-    count += 2;
-}
-
-Console.WriteLine(A);
-bool EqualOI()
-{
-    if (output.Count != instr.Count)
-        return false;
-    for (int i = 0; i < instr.Count; i++)
-    {
-        if (instr[i] != output[i])
-            return false;
-    }
-    return true;
-}
-
-
-void Output()
-{
-    long ind = 0;
-    List<int> output = new List<int>();
-    //prelucrare date
-    while (true)
-    {
-        var ins = instr[(int)ind];
-        long jumps = Solve(ins, instr[(int)ind + 1]);
-
-        if (jumps == -1)
-            ind += 2;
-        else if (jumps == long.MaxValue)
+        //jos
+        if (u.I < lat - 1)
         {
-            break;
+            ii = u.I + 1;
+            jj = u.J;
+            if (!luat[ii][jj]
+                && map[ii][jj] != '#'
+                && cost[u.I][u.J] != int.MaxValue
+                && cost[u.I][u.J] + 1 < cost[ii][jj])
+            {
+                cost[ii][jj] = cost[u.I][u.J] + 1;
+            }
         }
-        else
+        //stg
+        if (u.J > 0)
         {
-            ind = jumps;
+            ii = u.I;
+            jj = u.J - 1;
+            if (!luat[ii][jj]
+                && map[ii][jj] != '#'
+                && cost[u.I][u.J] != int.MaxValue
+                && cost[u.I][u.J] + 1 < cost[ii][jj])
+            {
+                cost[ii][jj] = cost[u.I][u.J] + 1;
+            }
         }
-        if (ind >= instr.Count)
-            break;
+        //sus
+        if (u.I > 0)
+        {
+            ii = u.I - 1;
+            jj = u.J;
+            if (!luat[ii][jj]
+                && map[ii][jj] != '#'
+                && cost[u.I][u.J] != int.MaxValue
+                && cost[u.I][u.J] + 1 < cost[ii][jj])
+            {
+                cost[ii][jj] = cost[u.I][u.J] + 1;
+            }
+        }
     }
 }
-
-long Solve(int inst, long op)
+Point minDist()
 {
-    switch (inst)
+    int min = int.MaxValue;
+    Point p = new Point(-1, -1);
+    for (int i = 0; i < lat; i++)
     {
-        case 0:
-            A = A / (int)Math.Pow(2, Combo(op));
-            break;
-        case 1:
-            B = B ^ op;
-            break;
-        case 2:
-            B = Combo(op) % 8;
-            break;
-        case 3:
-            if (A != 0)
-                return op;
-            break;
-        case 4:
-            B = B ^ C;
-            break;
-        case 5:
-            var o = (int)(Combo(op) % 8);
-            output.Add(o);
-            if (instr[output.Count-1] != o)
+        for (int j = 0; j < lat; j++)
+        {
+            if (luat[i][j] == false && cost[i][j] < min)
             {
-                return long.MaxValue;
+                min= cost[i][j];
+                p.I = i;
+                p.J = j;
             }
-            else
-            {
-                
-            }
-
-            break;
-        case 6:
-            B = A / (int)Math.Pow(2, Combo(op));
-            break;
-        case 7:
-            C = A / (int)Math.Pow(2, Combo(op));
-
-
-
-            break;
+        }
     }
 
-    return -1;
+    return p;
+}
+public class Point
+{
+    public int I { get; set; }
+    public int J { get; set; }
+
+    public Point(int i, int j)
+    {
+        I = i;
+        J = j;
+    }
 }
 
-foreach (var o in output)
-{
-    Console.Write(o + ",");
-}
-Console.ReadKey();
 
-long Combo(long op)
-{
-    if (op >= 0 && op <= 3)
-        return op;
-    if (op == 4)
-        return A;
-    if (op == 5)
-        return B;
-    if (op == 6)
-        return C;
-    return 0;
-}
 //Console.WriteLine(sum);
