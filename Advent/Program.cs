@@ -40,27 +40,47 @@ for (int i = 0; i < lat; i++)
 }
 
 //citire date
-var lim = 3000;
-for (int i = 0; i < lim; i++)
+var lim = 2900;
+var crapat = false;
+while (!crapat)
 {
-    var xcit = lines[i].Split(',');
-    var x = int.Parse(xcit[0]);
-    var y = int.Parse(xcit[1]);
-    map[y][x] = '#';
+    Console.WriteLine(lim);
+    for (int i = 0; i < lim; i++)
+    {
+        var xcit = lines[i].Split(',');
+        var x = int.Parse(xcit[0]);
+        var y = int.Parse(xcit[1]);
+        map[y][x] = '#';
+    }
+    for (int i = 0; i < lat; i++)
+    {
+        for (int j = 0; j < lat; j++)
+        {
+            cost[i][j] = int.MaxValue;
+            luat[i][j] = false;
+        }
+    }
+
+    //prelucrare
+    var ic = 0;
+    var jc = 0;
+    cost[ic][jc] = 0;
+    Dijskstra();
+    lim++;
 }
-//prelucrare
-var ic = 0;
-var jc = 0;
-cost[ic][jc] = 0;
-Dijskstra();
-Console.WriteLine(cost[lat - 1][lat-1]);
+
+Console.WriteLine(lines[lim-2]);
 void Dijskstra()
 {
     int ii = 0, jj = 0;
     while (cost[lat-1][lat-1] == int.MaxValue)
     {
         Point u = minDist();
-        
+        if (u.I == -1 || u.J == -1)
+        {
+            crapat = true;
+            break;
+        }
         luat[u.I][u.J] = true;
 
         //calculez noile distante
