@@ -20,154 +20,49 @@ using System.Xml.XPath;
 string[] lines = File.ReadAllLines("input.txt");
 //Hashtable memo = new Hashtable();
 var l = lines.Length;
-//for first star
-
-var lat = 71;
-char[][] map = new char[lat][];
-int[][] cost = new int[lat][];
-bool[][] luat = new bool[lat][];
-for (int i = 0; i < lat; i++)
-{
-    map[i] = new char[lat];
-    cost[i] = new int[lat];
-    luat[i] = new bool[lat];
-    for (int j = 0; j < lat; j++)
-    {
-        map[i][j] = '.';
-        cost[i][j] = int.MaxValue;
-        luat[i][j] = false;
-    }
-}
-
+List<string> flags = new List<string>(); 
+List<string> patterns = new List<string>();
+List<string> notpos = new List<string>();
 //citire date
-var lim = 2900;
-var crapat = false;
-while (!crapat)
+for (int i = 0; i < l; i++)
 {
-    Console.WriteLine(lim);
-    for (int i = 0; i < lim; i++)
+    if (lines[i].Contains(','))
     {
-        var xcit = lines[i].Split(',');
-        var x = int.Parse(xcit[0]);
-        var y = int.Parse(xcit[1]);
-        map[y][x] = '#';
+        flags = lines[i].Split(", ").ToList();
     }
-    for (int i = 0; i < lat; i++)
+    else if (!string.IsNullOrEmpty(lines[i]))
     {
-        for (int j = 0; j < lat; j++)
-        {
-            cost[i][j] = int.MaxValue;
-            luat[i][j] = false;
-        }
-    }
-
-    //prelucrare
-    var ic = 0;
-    var jc = 0;
-    cost[ic][jc] = 0;
-    Dijskstra();
-    lim++;
-}
-
-Console.WriteLine(lines[lim-2]);
-void Dijskstra()
-{
-    int ii = 0, jj = 0;
-    while (cost[lat-1][lat-1] == int.MaxValue)
-    {
-        Point u = minDist();
-        if (u.I == -1 || u.J == -1)
-        {
-            crapat = true;
-            break;
-        }
-        luat[u.I][u.J] = true;
-
-        //calculez noile distante
-        //dr
-        if (u.J < lat - 1)
-        {
-            ii = u.I;
-            jj = u.J + 1;
-            if (!luat[ii][jj]
-                && map[ii][jj] != '#'
-                && cost[u.I][u.J] != int.MaxValue
-                && cost[u.I][u.J] + 1 < cost[ii][jj])
-            {
-                cost[ii][jj] = cost[u.I][u.J] + 1;
-            }
-        }
-        //jos
-        if (u.I < lat - 1)
-        {
-            ii = u.I + 1;
-            jj = u.J;
-            if (!luat[ii][jj]
-                && map[ii][jj] != '#'
-                && cost[u.I][u.J] != int.MaxValue
-                && cost[u.I][u.J] + 1 < cost[ii][jj])
-            {
-                cost[ii][jj] = cost[u.I][u.J] + 1;
-            }
-        }
-        //stg
-        if (u.J > 0)
-        {
-            ii = u.I;
-            jj = u.J - 1;
-            if (!luat[ii][jj]
-                && map[ii][jj] != '#'
-                && cost[u.I][u.J] != int.MaxValue
-                && cost[u.I][u.J] + 1 < cost[ii][jj])
-            {
-                cost[ii][jj] = cost[u.I][u.J] + 1;
-            }
-        }
-        //sus
-        if (u.I > 0)
-        {
-            ii = u.I - 1;
-            jj = u.J;
-            if (!luat[ii][jj]
-                && map[ii][jj] != '#'
-                && cost[u.I][u.J] != int.MaxValue
-                && cost[u.I][u.J] + 1 < cost[ii][jj])
-            {
-                cost[ii][jj] = cost[u.I][u.J] + 1;
-            }
-        }
-    }
-}
-Point minDist()
-{
-    int min = int.MaxValue;
-    Point p = new Point(-1, -1);
-    for (int i = 0; i < lat; i++)
-    {
-        for (int j = 0; j < lat; j++)
-        {
-            if (luat[i][j] == false && cost[i][j] < min)
-            {
-                min= cost[i][j];
-                p.I = i;
-                p.J = j;
-            }
-        }
-    }
-
-    return p;
-}
-public class Point
-{
-    public int I { get; set; }
-    public int J { get; set; }
-
-    public Point(int i, int j)
-    {
-        I = i;
-        J = j;
+        patterns.Add(lines[i]);
     }
 }
 
+var count = 0;
+foreach (var pattern in patterns)
+{
+    Console.WriteLine(patterns.IndexOf(pattern));
+    var isp = Solve(pattern);
+    
+    if (isp)
+        count++;
+}
+Console.WriteLine(count);
 
-//Console.WriteLine(sum);
+bool Solve(string s)
+{
+    if(flags.Contains(s))
+        return true;
+    if(notpos.Contains(s))
+        return false;
+    var solved = false;
+    foreach (var flag in flags)
+    {
+        if (s.StartsWith(flag))
+        {
+            var r = s.Remove(0, flag.Length);
+            if (Solve(r))
+                return true;
+        }
+    }
+    notpos.Add(s);
+    return false;
+}
