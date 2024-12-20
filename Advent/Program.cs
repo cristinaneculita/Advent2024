@@ -18,78 +18,180 @@ using System.Xml.Schema;
 using System.Xml.XPath;
 
 string[] lines = File.ReadAllLines("input.txt");
-Hashtable memo = new Hashtable();
+
 var l = lines.Length;
-List<string> flags = new List<string>(); 
-List<string> patterns = new List<string>();
-List<string> notpos = new List<string>();
+char[][] map = new char[l][];
+int[][] cost = new int[l][];
+bool[][] luat= new bool[l][];
+
 //citire date
 for (int i = 0; i < l; i++)
 {
-    if (lines[i].Contains(','))
+    map[i] = lines[i].ToCharArray();
+    cost[i] = new int[l];
+    luat[i] = new bool[l];
+    for (int j = 0; j < l; j++)
     {
-        flags = lines[i].Split(", ").ToList();
-    }
-    else if (!string.IsNullOrEmpty(lines[i]))
-    {
-        patterns.Add(lines[i]);
+        cost[i][j] = int.MaxValue;
+        luat[i][j] = false;
     }
 }
 
-flags = flags.OrderBy(c=>c.Length).ToList();
-var count = 0;
-long pos = 0;
-//brwrr can be made in two different ways: b, r, wr, r or br, wr, r
-foreach (var pattern in patterns)
+int si = 0, sj = 0, ei = 0,ej = 0;
+//prelucrare date
+for (int i = 0; i < l; i++)
 {
-    long posc = 0;
-   // Console.WriteLine(patterns.IndexOf(pattern));
-    posc = Solve(pattern);
-    pos += posc;
-    Console.WriteLine($"{pattern}: {posc}");
-    //if (isp)
-    //    count++;
-}
-Console.WriteLine(count);
-
-long Solve(string s)
-{
-    long sol = 0;
-    var solved = false;
-    if (memo.Contains(s))
+    for (int j = 0; j < l; j++)
     {
-       // pos+= (int)memo[s];
-         sol = (long)memo[s];
-        return sol;
-    }
-    if (flags.Contains(s))
-    {
-        //pos++;
-        sol++;
-        solved = true;
-      //  memo.Add(s,sol);
-        // return true;
-    }
-    if(notpos.Contains(s))
-        return 0;
-    foreach (var flag in flags)
-    {
-        if (s.StartsWith(flag))
+        if (map[i][j] == 'S')
         {
-            var r = s.Remove(0, flag.Length);
-            var rez =Solve(r);
-            if(rez>0) solved=true;
-            sol += rez;
+            si = i;
+            sj = j;
+        }
+
+        if (map[i][j] == 'E')
+        {
+            ei = i;
+            ej = j;
+        }
+    }
+}
+
+cost[si][sj] = 0;
+Dijsktra();
+var pic = cost[ei][ej];
+var many = 0;
+//scot cate un perete si vad cate salvez
+for (int a = 1; a < l-1; a++)
+{
+    for (int b = 1; b < l-1; b++)
+    {
+        for (int i = 0; i < l; i++)
+        {
+            map[i] = lines[i].ToCharArray();
+            cost[i] = new int[l];
+            luat[i] = new bool[l];
+            for (int j = 0; j < l; j++)
+            {
+                cost[i][j] = int.MaxValue;
+                luat[i][j] = false;
+            }
+        }
+        cost[si][sj] = 0;
+        if (map[a][b] == '#')
+        {
+            map[a][b] = '.';
+            Dijsktra();
+            var picc = cost[ei][ej];
+            Console.WriteLine($"{a} {b} :{picc}" );
+            if (picc + 100 <= pic)
+                many++;
+        }
+
+    }
+}
+
+Console.WriteLine(many);
+Console.ReadKey();
+Console.ReadKey();
+Console.ReadKey();
+
+
+
+void Dijsktra()
+{
+    int ii = 0, jj = 0;
+    while (cost[ei][ej] == int.MaxValue)
+    {
+        Point u = minDist();
+        
+        luat[u.I][u.J] = true;
+        //dr
+        if (u.J < l - 1)
+        {
+            ii = u.I;
+            jj = u.J + 1;
+            if (!luat[ii][jj]
+                && map[ii][jj] != '#'
+                && cost[u.I][u.J] != int.MaxValue
+                && cost[u.I][u.J] + 1 < cost[ii][jj])
+            {
+                cost[ii][jj] = cost[u.I][u.J] + 1;
+            }
+        }
+
+        //jos
+        if (u.I < l - 1)
+        {
+            ii = u.I + 1;
+            jj = u.J;
+            if (!luat[ii][jj]
+                && map[ii][jj] != '#'
+                && cost[u.I][u.J] != int.MaxValue
+                && cost[u.I][u.J] + 1 < cost[ii][jj])
+            {
+                cost[ii][jj] = cost[u.I][u.J] + 1;
+            }
+        }
+
+        //stg
+        if (u.J > 0)
+        {
+            ii = u.I;
+            jj = u.J - 1;
+            if (!luat[ii][jj]
+                && map[ii][jj] != '#'
+                && cost[u.I][u.J] != int.MaxValue
+                && cost[u.I][u.J] + 1 < cost[ii][jj])
+            {
+                cost[ii][jj] = cost[u.I][u.J] + 1;
+            }
+        }
+
+        //sus
+        if (u.I > 0)
+        {
+            ii = u.I - 1;
+            jj = u.J;
+            if (!luat[ii][jj]
+                && map[ii][jj] != '#'
+                && cost[u.I][u.J] != int.MaxValue
+                && cost[u.I][u.J] + 1 < cost[ii][jj])
+            {
+                cost[ii][jj] = cost[u.I][u.J] + 1;
+            }
+        }
+    }
+}
+
+Point minDist()
+{
+    int min = int.MaxValue;
+    Point p = new Point(-1, -1);
+    for (int i = 0; i < l; i++)
+    {
+        for (int j = 0; j < l; j++)
+        {
+            if (luat[i][j] == false && cost[i][j] < min)
+            {
+                min = cost[i][j];
+                p.I = i;
+                p.J = j;
+            }
         }
     }
 
-    if (!solved)
-    {
-        notpos.Add(s);
-        return 0;
-    }
-    memo.Add(s,sol);
-    return sol;
+    return p;
 }
 
-Console.WriteLine("pos "+pos);
+public class Point
+{
+    public int I { get; set; }
+    public int J { get; set; }
+
+    public Point(int i, int j)
+    {
+        I = i;
+        J = j;
+    }
+}
