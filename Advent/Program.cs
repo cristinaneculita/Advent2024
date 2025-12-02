@@ -26,20 +26,42 @@ foreach (var line in lines)
 {
     var dir = line[0];
     var val = int.Parse(line[1..]);
+    Console.Write(line + " ");
     if (dir == 'R')
     {
-        s+= val;
-        while (s>99)
-            s-=100;
+        
+        while (val>0)
+        {
+            s+=1;
+            if (s == 100)
+            {
+                t++;
+                s = 0;
+            }
+
+            val--;
+
+        }
     }
     else if (dir == 'L')
     {
-        s-= val;
-        while (s<0)
-            s+=100;
+
+        while (val>0) 
+        {
+            s-=1;
+            if (s == 0)
+            {
+                t++;
+            }
+
+            if (s == -1)
+                s = 99;
+            val--;
+            // Console.Write(" added");
+        }
     }
-    if (s==0)
-        t+=1;
+    //if (s==0)
+    //    t+=1;
     Console.WriteLine(s);
 }
 Console.WriteLine(t);
