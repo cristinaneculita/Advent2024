@@ -47,12 +47,28 @@ bool Valid(long l)
 {
     var str = l.ToString();
     var lung = str.Length;
-    if (lung%2==1)
-        return false;
-    for (int i = 0; i < str.Length / 2; i++)
+    for (int i = 1; i <= lung / 2; i++)
     {
-        if (str[i] != str[i+lung/2])
-            return false;
+        if (B(str, i, lung)) return true;
+    }
+
+    return false;
+}
+
+bool B(string s, int i1, int lung1)
+{
+    //grupuri de i
+    var mostra = s[0..i1];
+    if (lung1 % i1 != 0)
+        return false;
+    var groups = lung1 / i1;
+    for (int j = 0; j < groups; j++)
+    {
+        for (int k = 0; k < i1; k++)
+        {
+            if (s[j * i1 + k] != mostra[k])
+                return false;
+        }
     }
 
     return true;
