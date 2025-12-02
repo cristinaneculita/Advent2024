@@ -20,51 +20,48 @@ using System.Xml.XPath;
 string[] lines = File.ReadAllLines("input.txt");
 
 var l = lines.Length;
-int s = 50;
-int t = 0;
-foreach (var line in lines)
+var info = lines[0];
+var pairs = info.Split(",");
+List<Par> pars = new List<Par>();
+foreach (var pair in pairs)
 {
-    var dir = line[0];
-    var val = int.Parse(line[1..]);
-    Console.Write(line + " ");
-    if (dir == 'R')
-    {
-        
-        while (val>0)
-        {
-            s+=1;
-            if (s == 100)
-            {
-                t++;
-                s = 0;
-            }
-
-            val--;
-
-        }
-    }
-    else if (dir == 'L')
-    {
-
-        while (val>0) 
-        {
-            s-=1;
-            if (s == 0)
-            {
-                t++;
-            }
-
-            if (s == -1)
-                s = 99;
-            val--;
-            // Console.Write(" added");
-        }
-    }
-    //if (s==0)
-    //    t+=1;
-    Console.WriteLine(s);
+    var x = pair.Split('-');
+    pars.Add(new Par(){Start = long.Parse(x[0]), End = long.Parse(x[1])});
 }
-Console.WriteLine(t);
-  
+
+
+long sum = 0;
+foreach (var par in pars)
+{
+    for(long i = par.Start; i <= par.End; i++)
+    {
+        if (Valid(i))
+            sum += i;
+
+       
+    }
+}
+
+Console.WriteLine(sum);
+bool Valid(long l)
+{
+    var str = l.ToString();
+    var lung = str.Length;
+    if (lung%2==1)
+        return false;
+    for (int i = 0; i < str.Length / 2; i++)
+    {
+        if (str[i] != str[i+lung/2])
+            return false;
+    }
+
+    return true;
+}
+
+class Par
+{
+    public long Start { get; set; }
+    public long End { get; set; }
+}
 
 
