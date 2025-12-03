@@ -20,29 +20,54 @@ using System.Xml.XPath;
 string[] lines = File.ReadAllLines("input.txt");
 
 var l = lines.Length;
-int sum = 0;
+long sum = 0;
+var rand = lines[0].Length;
 foreach (var line in lines)
 {
-    int max = 0;
-    var arr = line.ToCharArray();
-    for (int i = 0; i < line.Length; i++)
-    {
-        for (int j = i+1; j < line.Length; j++)
-        {
+    var max = Max(line, 12);
 
-            char[] varc = new char[2];
-            varc[0]= arr[i];
-            varc[1]= arr[j];
-            string str = new string(varc);
-            int val = int.Parse(str);
-            if (val > max)
-            {
-                max = val;
-            }
-        }
-    }
-    sum += max;
-    Console.WriteLine(max);
+
+    sum+=long.Parse(max);
 }
 
 Console.WriteLine(sum);
+
+
+string Max(string s, int len)
+{
+    var maxnr = 9;
+    if (len == 0)
+        return "";
+    while (maxnr > 0)
+    {
+
+        var firstOc = FirstOc(s, maxnr);
+        if (firstOc >= 0 && firstOc <= s.Length-len)
+        {
+            //retin
+            return maxnr + Max(s.Substring(firstOc + 1), len - 1);
+        }
+       
+
+        maxnr--;
+    }
+
+    return "";
+}
+
+int FirstOc(string s, int maxnr)
+{
+    var arr = s.ToCharArray();
+    for (int i = 0; i < arr.Length; i++)
+    {
+        if (int.Parse(arr[i].ToString()) == maxnr)
+            return i;
+    }
+
+    return -1;
+}
+
+int GetMaxNr(string s1)
+{
+    throw new NotImplementedException();
+}
