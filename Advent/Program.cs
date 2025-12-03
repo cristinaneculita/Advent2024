@@ -20,64 +20,29 @@ using System.Xml.XPath;
 string[] lines = File.ReadAllLines("input.txt");
 
 var l = lines.Length;
-var info = lines[0];
-var pairs = info.Split(",");
-List<Par> pars = new List<Par>();
-foreach (var pair in pairs)
+int sum = 0;
+foreach (var line in lines)
 {
-    var x = pair.Split('-');
-    pars.Add(new Par(){Start = long.Parse(x[0]), End = long.Parse(x[1])});
-}
-
-
-long sum = 0;
-foreach (var par in pars)
-{
-    for(long i = par.Start; i <= par.End; i++)
+    int max = 0;
+    var arr = line.ToCharArray();
+    for (int i = 0; i < line.Length; i++)
     {
-        if (Valid(i))
-            sum += i;
+        for (int j = i+1; j < line.Length; j++)
+        {
 
-       
+            char[] varc = new char[2];
+            varc[0]= arr[i];
+            varc[1]= arr[j];
+            string str = new string(varc);
+            int val = int.Parse(str);
+            if (val > max)
+            {
+                max = val;
+            }
+        }
     }
+    sum += max;
+    Console.WriteLine(max);
 }
 
 Console.WriteLine(sum);
-bool Valid(long l)
-{
-    var str = l.ToString();
-    var lung = str.Length;
-    for (int i = 1; i <= lung / 2; i++)
-    {
-        if (B(str, i, lung)) return true;
-    }
-
-    return false;
-}
-
-bool B(string s, int i1, int lung1)
-{
-    //grupuri de i
-    var mostra = s[0..i1];
-    if (lung1 % i1 != 0)
-        return false;
-    var groups = lung1 / i1;
-    for (int j = 0; j < groups; j++)
-    {
-        for (int k = 0; k < i1; k++)
-        {
-            if (s[j * i1 + k] != mostra[k])
-                return false;
-        }
-    }
-
-    return true;
-}
-
-class Par
-{
-    public long Start { get; set; }
-    public long End { get; set; }
-}
-
-
