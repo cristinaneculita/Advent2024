@@ -20,54 +20,76 @@ using System.Xml.XPath;
 string[] lines = File.ReadAllLines("input.txt");
 
 var l = lines.Length;
-long sum = 0;
-var rand = lines[0].Length;
-foreach (var line in lines)
+var c = lines[0].Length;
+
+char[][] m = new char[c][];
+for (int i = 0; i < c; i++)
 {
-    var max = Max(line, 12);
+    m[i] = lines[i].ToCharArray();
+}
+
+char[][] marked = new char[c][];
+for (int i = 0; i < c; i++)
+{
+    marked[i] = new char[l];
+}
 
 
-    sum+=long.Parse(max);
+long sum = 0;
+int partialsum = 1;
+while (partialsum!=0)
+{
+    partialsum = 0;
+    for (int i = 0; i < l; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            marked[i][j] = '-';
+        }
+    }
+
+    for (int i = 0; i < l; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            if (m[i][j] == '@' && Valid(m, i, j))
+                marked[i][j] = '#';
+        }
+    }
+    for (int i = 0; i < l; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            if(marked[i][j] == '#')
+            {
+                partialsum++;
+                m[i][j] = '.';
+            }
+        }
+    }
+    sum += partialsum;
 }
 
 Console.WriteLine(sum);
 
-
-string Max(string s, int len)
+bool Valid(char[][] chars, int i, int j)
 {
-    var maxnr = 9;
-    if (len == 0)
-        return "";
-    while (maxnr > 0)
-    {
-
-        var firstOc = FirstOc(s, maxnr);
-        if (firstOc >= 0 && firstOc <= s.Length-len)
-        {
-            //retin
-            return maxnr + Max(s.Substring(firstOc + 1), len - 1);
-        }
-       
-
-        maxnr--;
-    }
-
-    return "";
-}
-
-int FirstOc(string s, int maxnr)
-{
-    var arr = s.ToCharArray();
-    for (int i = 0; i < arr.Length; i++)
-    {
-        if (int.Parse(arr[i].ToString()) == maxnr)
-            return i;
-    }
-
-    return -1;
-}
-
-int GetMaxNr(string s1)
-{
-    throw new NotImplementedException();
+    var s = 0;
+    if (i > 0 && j > 0 && chars[i - 1][j - 1] == '@')
+        s++;
+    if (i > 0 && chars[i - 1][j] == '@')
+        s++;
+    if (i > 0 && j < chars.Length - 1 && chars[i - 1][j + 1] == '@')
+        s++;
+    if (j > 0 && chars[i][j - 1] == '@')
+        s++;
+    if (j < chars.Length - 1 && chars[i][j + 1] == '@')
+        s++;
+    if (i < chars.Length - 1 && j > 0 && chars[i + 1][j - 1] == '@')
+        s++;
+    if (i < chars.Length - 1 && chars[i + 1][j] == '@')
+        s++;
+    if (i < chars.Length - 1 && j < chars.Length - 1 && chars[i + 1][j + 1] == '@')
+        s++;
+    return s < 4;
 }
