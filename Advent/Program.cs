@@ -20,76 +20,48 @@ using System.Xml.XPath;
 string[] lines = File.ReadAllLines("input.txt");
 
 var l = lines.Length;
-var c = lines[0].Length;
-
-char[][] m = new char[c][];
-for (int i = 0; i < c; i++)
+int i = 0;
+var intervals = new List<Interval>();
+while (lines[i] != "")
 {
-    m[i] = lines[i].ToCharArray();
+    var x = lines[i].Split('-');
+    intervals.Add(new Interval(){Low = long.Parse(x[0]), High = long.Parse(x[1])});
+
+    i++;
 }
 
-char[][] marked = new char[c][];
-for (int i = 0; i < c; i++)
+i++;
+var nr = new List<long>();
+for (int j = i; j < l; j++)
 {
-    marked[i] = new char[l];
+    nr.Add(long.Parse(lines[j]));
 }
-
 
 long sum = 0;
-int partialsum = 1;
-while (partialsum!=0)
+foreach (var n in nr)
 {
-    partialsum = 0;
-    for (int i = 0; i < l; i++)
+    foreach (var interval in intervals)
     {
-        for (int j = 0; j < c; j++)
+        if (IsInInterval(n, interval))
         {
-            marked[i][j] = '-';
+            sum++;
+            break;
         }
-    }
 
-    for (int i = 0; i < l; i++)
-    {
-        for (int j = 0; j < c; j++)
-        {
-            if (m[i][j] == '@' && Valid(m, i, j))
-                marked[i][j] = '#';
-        }
+      
     }
-    for (int i = 0; i < l; i++)
-    {
-        for (int j = 0; j < c; j++)
-        {
-            if(marked[i][j] == '#')
-            {
-                partialsum++;
-                m[i][j] = '.';
-            }
-        }
-    }
-    sum += partialsum;
 }
 
 Console.WriteLine(sum);
-
-bool Valid(char[][] chars, int i, int j)
+bool IsInInterval(long l, Interval interval)
 {
-    var s = 0;
-    if (i > 0 && j > 0 && chars[i - 1][j - 1] == '@')
-        s++;
-    if (i > 0 && chars[i - 1][j] == '@')
-        s++;
-    if (i > 0 && j < chars.Length - 1 && chars[i - 1][j + 1] == '@')
-        s++;
-    if (j > 0 && chars[i][j - 1] == '@')
-        s++;
-    if (j < chars.Length - 1 && chars[i][j + 1] == '@')
-        s++;
-    if (i < chars.Length - 1 && j > 0 && chars[i + 1][j - 1] == '@')
-        s++;
-    if (i < chars.Length - 1 && chars[i + 1][j] == '@')
-        s++;
-    if (i < chars.Length - 1 && j < chars.Length - 1 && chars[i + 1][j + 1] == '@')
-        s++;
-    return s < 4;
+   if(l>=interval.Low &&l<=interval.High)
+       return true;
+   return false;
+}
+
+class Interval
+{
+    public long Low { get; set; }
+    public long High { get; set; }
 }
