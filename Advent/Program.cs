@@ -20,58 +20,70 @@ using System.Xml.XPath;
 string[] lines = File.ReadAllLines("input.txt");
 
 var l = lines.Length;
-int i = 0;
-var intervals = new List<Interval>();
-while (lines[i] != "")
+List<int> listacur = new List<int>();
+int[][] nr = new int[4][];
+for (int i = 0; i < 4; i++)
 {
-    var x = lines[i].Split('-');
-    intervals.Add(new Interval(){Low = long.Parse(x[0]), High = long.Parse(x[1])});
-
-    i++;
+    nr[i]=new int[1000];
 }
 
-//order intervals
-//keep sum
-var orderedInt = intervals.OrderBy(v => v.Low).ToList();
-
-var result = new Result()
-    { Low = orderedInt[0].Low, High = orderedInt[0].High, Numbers = orderedInt[0].High - orderedInt[0].Low + 1 };
-
-for (int j = 1; j < orderedInt.Count; j++)
+for (int i = 0; i < 4; i++)
 {
-    if (orderedInt[j].Low <= result.High)
+    var j = 0;
+    var x = lines[i].Split(" ");
+    foreach (var s in x)
     {
-
-        if (orderedInt[j].High <= result.High)
-        {
-            //nothing
-        }
+        if (string.IsNullOrWhiteSpace(s))
+        { continue; }
         else
         {
-            result.Numbers += orderedInt[j].High - result.High;
-            result.High = orderedInt[j].High;
+            nr[i][j] = int.Parse(s);
+            j++;
         }
     }
-    else if (orderedInt[j].Low > result.High)
+}
+
+char[] c = new char[1000];
+var y = lines[4].Split(" ");
+var k = 0;
+foreach (var ss in y)
+{
+    if (string.IsNullOrWhiteSpace(ss))
+    { continue; }
+    else
     {
-        result.Low = orderedInt[j].Low;
-        result.High = orderedInt[j].High;
-        result.Numbers += orderedInt[j].High - orderedInt[j].Low + 1;
+        c[k] = char.Parse(ss);
+        k++;
     }
 }
 
-Console.WriteLine(result.Numbers);
-
-
-class Interval
+long[] rez = new long[1000];
+long sum = 0;
+long sc= 0;
+for (int i = 0; i < rez.Length; i++)
 {
-    public long Low { get; set; }
-    public long High { get; set; }
+    switch (c[i])
+    {
+        case '+':
+            sc = 0;
+            for (int j = 0; j < 4; j++)
+            {
+                sc += nr[j][i];
+            }
+            break;
+        case '*':
+            sc = 1;
+            for (int j = 0; j < 4; j++)
+            {
+                sc *= nr[j][i];
+            }
+            break;
+    }
+
+    sum += sc;
+
+
+
 }
 
-class Result
-{
-    public long Low { get; set; }
-    public long High { get; set; }
-    public long Numbers { get; set; }
-}
+Console.WriteLine(sum);
