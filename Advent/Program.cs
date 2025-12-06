@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Collections;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
@@ -18,72 +19,93 @@ using System.Xml.Schema;
 using System.Xml.XPath;
 
 string[] lines = File.ReadAllLines("input.txt");
-
+bool ende = false;
 var l = lines.Length;
-List<int> listacur = new List<int>();
-int[][] nr = new int[4][];
-for (int i = 0; i < 4; i++)
+var lineop = 5;
+char[][] m= new char[lineop][];
+long sum=0;
+for (int i = 0; i < lineop; i++)
 {
-    nr[i]=new int[1000];
+    m[i] = lines[i].ToCharArray();
 }
 
-for (int i = 0; i < 4; i++)
+var cop = 0;
+int start = 0;
+int end = 0;
+List<char> aux = new List<char>();
+while (true)
 {
-    var j = 0;
-    var x = lines[i].Split(" ");
-    foreach (var s in x)
+    while (m[lineop-1][cop] == ' ')
+        cop++;
+    start = cop;
+    end = cop;
+    while (!AllEmpty(end))
     {
-        if (string.IsNullOrWhiteSpace(s))
-        { continue; }
-        else
-        {
-            nr[i][j] = int.Parse(s);
-            j++;
-        }
+        end++;
     }
-}
 
-char[] c = new char[1000];
-var y = lines[4].Split(" ");
-var k = 0;
-foreach (var ss in y)
-{
-    if (string.IsNullOrWhiteSpace(ss))
-    { continue; }
-    else
+   
+    //from start to end form numbers
+   
+    var nr = new List<int>();
+    for (int i = start; i < end; i++)
     {
-        c[k] = char.Parse(ss);
-        k++;
+        aux = new List<char>();
+        if (m[0][i]!= ' ')
+            aux.Add(m[0][i]);
+        if (m[1][i]!=' ')
+            aux.Add(m[1][i]);
+        if (m[2][i]!=' ')
+            aux.Add(m[2][i]);
+        if (m[3][i]!=' ')
+           aux.Add(m[3][i]);
+        var cs = aux.ToArray();
+        var s = new string(cs);
+        nr.Add(int.Parse(s));
     }
-}
 
-long[] rez = new long[1000];
-long sum = 0;
-long sc= 0;
-for (int i = 0; i < rez.Length; i++)
-{
-    switch (c[i])
+    long sc = 0;
+    switch (m[lineop-1][cop])
     {
         case '+':
             sc = 0;
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < nr.Count; j++)
             {
-                sc += nr[j][i];
+                sc += nr[j];
             }
+
             break;
         case '*':
             sc = 1;
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < nr.Count; j++)
             {
-                sc *= nr[j][i];
+                sc *= nr[j];
             }
+
             break;
     }
 
     sum += sc;
-
-
-
+    cop++;
+    if (cop >= m[lineop - 1].Length)
+        break;
+    if (ende)
+        break;
 }
 
 Console.WriteLine(sum);
+
+
+bool AllEmpty(int end)
+{
+
+    if (end >= m[lineop-1].Length)
+    {
+        ende = true;
+        return true;
+    }
+    
+    if (m[0][end] == ' ' && m[1][end] == ' ' && m[2][end] == ' ' && m[3][end] == ' ')
+        return true;
+    return false;
+}
