@@ -30,38 +30,48 @@ while (lines[i] != "")
     i++;
 }
 
-i++;
-var nr = new List<long>();
-for (int j = i; j < l; j++)
-{
-    nr.Add(long.Parse(lines[j]));
-}
+//order intervals
+//keep sum
+var orderedInt = intervals.OrderBy(v => v.Low).ToList();
 
-long sum = 0;
-foreach (var n in nr)
+var result = new Result()
+    { Low = orderedInt[0].Low, High = orderedInt[0].High, Numbers = orderedInt[0].High - orderedInt[0].Low + 1 };
+
+for (int j = 1; j < orderedInt.Count; j++)
 {
-    foreach (var interval in intervals)
+    if (orderedInt[j].Low <= result.High)
     {
-        if (IsInInterval(n, interval))
-        {
-            sum++;
-            break;
-        }
 
-      
+        if (orderedInt[j].High <= result.High)
+        {
+            //nothing
+        }
+        else
+        {
+            result.Numbers += orderedInt[j].High - result.High;
+            result.High = orderedInt[j].High;
+        }
+    }
+    else if (orderedInt[j].Low > result.High)
+    {
+        result.Low = orderedInt[j].Low;
+        result.High = orderedInt[j].High;
+        result.Numbers += orderedInt[j].High - orderedInt[j].Low + 1;
     }
 }
 
-Console.WriteLine(sum);
-bool IsInInterval(long l, Interval interval)
-{
-   if(l>=interval.Low &&l<=interval.High)
-       return true;
-   return false;
-}
+Console.WriteLine(result.Numbers);
+
 
 class Interval
 {
     public long Low { get; set; }
     public long High { get; set; }
+}
+
+class Result
+{
+    public long Low { get; set; }
+    public long High { get; set; }
+    public long Numbers { get; set; }
 }
