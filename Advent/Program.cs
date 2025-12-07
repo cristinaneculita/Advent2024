@@ -19,93 +19,77 @@ using System.Xml.Schema;
 using System.Xml.XPath;
 
 string[] lines = File.ReadAllLines("input.txt");
-bool ende = false;
-var l = lines.Length;
-var lineop = 5;
-char[][] m= new char[lineop][];
-long sum=0;
-for (int i = 0; i < lineop; i++)
+
+var l= lines.Length;
+var c= lines[0].Length;
+
+
+char[][] m = new char[l][];
+int splits = 0;
+bool[][] solved = new bool[l][];
+for (int i = 0; i < l; i++)
 {
     m[i] = lines[i].ToCharArray();
+    solved[i] = new bool[c];
+}
+int starti = 0;
+int startj = 0;
+for (int i = 0; i < l; i++)
+{
+    for (int j = 0; j < c; j++)
+    {
+        if (m[i][j] == 'S')
+        {
+            starti = i;
+            startj = j;
+            break;
+        }
+    }
 }
 
-var cop = 0;
-int start = 0;
-int end = 0;
-List<char> aux = new List<char>();
+bool exit = false;
 while (true)
 {
-    while (m[lineop-1][cop] == ' ')
-        cop++;
-    start = cop;
-    end = cop;
-    while (!AllEmpty(end))
+    for (int i = 0; i < l; i++)
     {
-        end++;
-    }
-
-   
-    //from start to end form numbers
-   
-    var nr = new List<int>();
-    for (int i = start; i < end; i++)
-    {
-        aux = new List<char>();
-        if (m[0][i]!= ' ')
-            aux.Add(m[0][i]);
-        if (m[1][i]!=' ')
-            aux.Add(m[1][i]);
-        if (m[2][i]!=' ')
-            aux.Add(m[2][i]);
-        if (m[3][i]!=' ')
-           aux.Add(m[3][i]);
-        var cs = aux.ToArray();
-        var s = new string(cs);
-        nr.Add(int.Parse(s));
-    }
-
-    long sc = 0;
-    switch (m[lineop-1][cop])
-    {
-        case '+':
-            sc = 0;
-            for (int j = 0; j < nr.Count; j++)
+        for (int j = 0; j < c; j++)
+        {
+            if ((m[i][j] == 'S' || m[i][j] == '|') && (!solved[i][j]))
             {
-                sc += nr[j];
-            }
+                exit = Solve(i, j);
+                
+                solved[i][j] = true;
 
-            break;
-        case '*':
-            sc = 1;
-            for (int j = 0; j < nr.Count; j++)
-            {
-                sc *= nr[j];
             }
-
-            break;
+        }
     }
 
-    sum += sc;
-    cop++;
-    if (cop >= m[lineop - 1].Length)
-        break;
-    if (ende)
+    if (exit)
         break;
 }
 
-Console.WriteLine(sum);
-
-
-bool AllEmpty(int end)
+Console.WriteLine(splits);
+bool Solve(int i, int j)
 {
-
-    if (end >= m[lineop-1].Length)
+    if (i == l - 1)
     {
-        ende = true;
         return true;
     }
-    
-    if (m[0][end] == ' ' && m[1][end] == ' ' && m[2][end] == ' ' && m[3][end] == ' ')
-        return true;
+
+    if (m[i + 1][j] == '.')
+    {
+        m[i + 1][j] = '|';
+    }
+
+    if (m[i + 1][j] == '^')
+    {
+        if (j > 0)
+            m[i + 1][j - 1] = '|';
+        if (j < c - 1)
+            m[i + 1][j + 1] = '|';
+        splits++;
+    }
+
     return false;
+
 }
