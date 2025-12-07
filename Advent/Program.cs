@@ -26,11 +26,14 @@ var c= lines[0].Length;
 
 char[][] m = new char[l][];
 int splits = 0;
+long[][] cost = new long[l][];
+
 bool[][] solved = new bool[l][];
 for (int i = 0; i < l; i++)
 {
     m[i] = lines[i].ToCharArray();
     solved[i] = new bool[c];
+    cost[i]= new long[c];
 }
 int starti = 0;
 int startj = 0;
@@ -42,54 +45,42 @@ for (int i = 0; i < l; i++)
         {
             starti = i;
             startj = j;
+            cost[i][j] = 1;
             break;
         }
     }
 }
 
-bool exit = false;
-while (true)
+for (int i = 0; i < l; i++)
 {
-    for (int i = 0; i < l; i++)
+    for (int j = 0; j < c; j++)
     {
-        for (int j = 0; j < c; j++)
+        if (cost[i][j] != 0)
         {
-            if ((m[i][j] == 'S' || m[i][j] == '|') && (!solved[i][j]))
-            {
-                exit = Solve(i, j);
-                
-                solved[i][j] = true;
+            PropCost(i, j);
 
-            }
+          
         }
     }
-
-    if (exit)
-        break;
 }
 
-Console.WriteLine(splits);
-bool Solve(int i, int j)
+long ss = 0;
+for (int i = 0; i < c; i++)
 {
-    if (i == l - 1)
-    {
-        return true;
-    }
-
-    if (m[i + 1][j] == '.')
-    {
-        m[i + 1][j] = '|';
-    }
-
+    ss += cost[l - 1][i];
+}
+Console.WriteLine(ss);
+void PropCost(int i, int j)
+{
+    if(i==l-1)
+        return;
+    if (m[i + 1][j]=='.')
+        cost[i+1][j] += cost[i][j];
     if (m[i + 1][j] == '^')
     {
         if (j > 0)
-            m[i + 1][j - 1] = '|';
+            cost[i + 1][j - 1] += cost[i][j];
         if (j < c - 1)
-            m[i + 1][j + 1] = '|';
-        splits++;
+            cost[i + 1][j + 1] += cost[i][j];
     }
-
-    return false;
-
 }
