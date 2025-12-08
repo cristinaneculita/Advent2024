@@ -48,7 +48,7 @@ for (int i = 0; i < l; i++)
 dist = dist.OrderBy(d => d.Distance).ToList();
 int indexOfDist = 0;
 
-for (int i = 0; i < 1000; i++)
+for (int i = 0; i < 1000000; i++)
 {
     var cl = FindClosest();
 
@@ -99,13 +99,18 @@ for (int i = 0; i < 1000; i++)
         }
     }
 
+    if (lists[0].Count == 1000)
+    {
+        Console.WriteLine(cl.Item1.X*cl.Item2.X);
+        break;
+    }
 }
 
 
 
-lists.Sort((a, b) => a.Count.CompareTo(b.Count));
-lists.Reverse();
-Console.WriteLine(lists[0].Count * lists[1].Count*lists[2].Count);
+//lists.Sort((a, b) => a.Count.CompareTo(b.Count));
+//lists.Reverse();
+//Console.WriteLine(lists[0].Count * lists[1].Count*lists[2].Count);
 
 
 (Point,Point) FindClosest()
